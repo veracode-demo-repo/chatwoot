@@ -68,22 +68,7 @@
       </label>
     </div>
 
-    <div class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%]">
-      <label :class="{ error: $v.apiKey.$error }">
-        <span>
-          {{ $t('INBOX_MGMT.ADD.WHATSAPP.API_KEY.LABEL') }}
-        </span>
-        <input
-          v-model.trim="apiKey"
-          type="text"
-          :placeholder="$t('INBOX_MGMT.ADD.WHATSAPP.API_KEY.PLACEHOLDER')"
-          @blur="$v.apiKey.$touch"
-        />
-        <span v-if="$v.apiKey.$error" class="message">
-          {{ $t('INBOX_MGMT.ADD.WHATSAPP.API_KEY.ERROR') }}
-        </span>
-      </label>
-    </div>
+    <whatsapp-login/>
 
     <div class="w-full">
       <woot-submit-button
@@ -100,8 +85,13 @@ import { useAlert } from 'dashboard/composables';
 import { required } from 'vuelidate/lib/validators';
 import router from '../../../../index';
 import { isPhoneE164OrEmpty, isNumber } from 'shared/helpers/Validators';
+import WhatsappLogin from '../channels/WhatsappLogin';
 
 export default {
+  components: {
+    WhatsappLogin
+  },
+  mixins: [alertMixin],
   data() {
     return {
       inboxName: '',

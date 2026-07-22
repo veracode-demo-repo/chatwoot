@@ -23,9 +23,7 @@ class Conversations::FilterService < FilterService
   end
 
   def base_relation
-    @account.conversations.includes(
-      :taggings, :inbox, { assignee: { avatar_attachment: [:blob] } }, { contact: { avatar_attachment: [:blob] } }, :team, :messages, :contact_inbox
-    )
+    @account.conversations.left_outer_joins(:labels).distinct
   end
 
   def current_page
