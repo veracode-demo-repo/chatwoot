@@ -1,5 +1,5 @@
 <template>
-  <div class="resolve-actions">
+  <div class="relative flex items-center justify-end resolve-actions">
     <div class="button-group">
       <woot-button
         v-if="isOpen"
@@ -10,7 +10,7 @@
         :is-loading="isLoading"
         @click="onCmdResolveConversation"
       >
-        {{ this.$t('CONVERSATION.HEADER.RESOLVE_ACTION') }}
+        {{ $t('CONVERSATION.HEADER.RESOLVE_ACTION') }}
       </woot-button>
       <woot-button
         v-else-if="isResolved"
@@ -21,7 +21,7 @@
         :is-loading="isLoading"
         @click="onCmdOpenConversation"
       >
-        {{ this.$t('CONVERSATION.HEADER.REOPEN_ACTION') }}
+        {{ $t('CONVERSATION.HEADER.REOPEN_ACTION') }}
       </woot-button>
       <woot-button
         v-else-if="showOpenButton"
@@ -31,7 +31,7 @@
         :is-loading="isLoading"
         @click="onCmdOpenConversation"
       >
-        {{ this.$t('CONVERSATION.HEADER.OPEN_ACTION') }}
+        {{ $t('CONVERSATION.HEADER.OPEN_ACTION') }}
       </woot-button>
       <woot-button
         v-if="showAdditionalActions"
@@ -48,7 +48,18 @@
       v-on-clickaway="closeDropdown"
       class="dropdown-pane dropdown-pane--open"
     >
-      <woot-dropdown-menu>
+      <woot-dropdown-menu class="mb-0">
+        <woot-dropdown-item v-if="!isPending">
+          <woot-button
+            variant="clear"
+            color-scheme="secondary"
+            size="small"
+            icon="snooze"
+            @click="() => openSnoozeModal()"
+          >
+            {{ $t('CONVERSATION.RESOLVE_DROPDOWN.SNOOZE_UNTIL') }}
+          </woot-button>
+        </woot-dropdown-item>
         <woot-dropdown-item v-if="!isPending">
           <woot-button
             variant="clear"
@@ -57,45 +68,18 @@
             icon="book-clock"
             @click="() => toggleStatus(STATUS_TYPE.PENDING)"
           >
-            {{ this.$t('CONVERSATION.RESOLVE_DROPDOWN.MARK_PENDING') }}
-          </woot-button>
-          <woot-button
-            variant="clear"
-            color-scheme="secondary"
-            size="small"
-            icon="snooze"
-            @click="() => openSnoozeModal()"
-          >
-            {{ this.$t('CONVERSATION.RESOLVE_DROPDOWN.SNOOZE_UNTIL') }}
+            {{ $t('CONVERSATION.RESOLVE_DROPDOWN.MARK_PENDING') }}
           </woot-button>
         </woot-dropdown-item>
       </woot-dropdown-menu>
     </div>
-    <woot-modal
-      :show.sync="showCustomSnoozeModal"
-      :on-close="hideCustomSnoozeModal"
-    >
-      <custom-snooze-modal
-        @close="hideCustomSnoozeModal"
-        @choose-time="chooseSnoozeTime"
-      />
-    </woot-modal>
   </div>
 </template>
 
 <script>
-import { getUnixTime } from 'date-fns';
 import { mapGetters } from 'vuex';
-import { mixin as clickaway } from 'vue-clickaway';
-import alertMixin from 'shared/mixins/alertMixin';
-import CustomSnoozeModal from 'dashboard/components/CustomSnoozeModal';
-import eventListenerMixins from 'shared/mixins/eventListenerMixins';
-import {
-  hasPressedAltAndEKey,
-  hasPressedCommandPlusAltAndEKey,
-  hasPressedAltAndMKey,
-} from 'shared/helpers/KeyboardHelpers';
-import { findSnoozeTime } from 'dashboard/helper/snoozeHelpers';
+import { useAlert } from 'dashboard/composables';
+import keyboardEventListenerMixins from 'shared/mixins/keyboardEventListenerMixins';
 import WootDropdownItem from 'shared/components/ui/dropdown/DropdownItem.vue';
 import WootDropdownMenu from 'shared/components/ui/dropdown/DropdownMenu.vue';
 
@@ -103,23 +87,20 @@ import wootConstants from 'dashboard/constants/globals';
 import {
   CMD_REOPEN_CONVERSATION,
   CMD_RESOLVE_CONVERSATION,
-  CMD_SNOOZE_CONVERSATION,
 } from '../../routes/dashboard/commands/commandBarBusEvents';
 
 export default {
   components: {
     WootDropdownItem,
     WootDropdownMenu,
-    CustomSnoozeModal,
   },
-  mixins: [clickaway, alertMixin, eventListenerMixins],
+  mixins: [keyboardEventListenerMixins],
   props: { conversationId: { type: [String, Number], required: true } },
   data() {
     return {
       isLoading: false,
       showActionsDropdown: false,
       STATUS_TYPE: wootConstants.STATUS_TYPE,
-      showCustomSnoozeModal: false,
     };
   },
   computed: {
@@ -147,70 +128,61 @@ export default {
     },
   },
   mounted() {
-    bus.$on(CMD_SNOOZE_CONVERSATION, this.onCmdSnoozeConversation);
-    bus.$on(CMD_REOPEN_CONVERSATION, this.onCmdOpenConversation);
-    bus.$on(CMD_RESOLVE_CONVERSATION, this.onCmdResolveConversation);
+    this.$emitter.on(CMD_REOPEN_CONVERSATION, this.onCmdOpenConversation);
+    this.$emitter.on(CMD_RESOLVE_CONVERSATION, this.onCmdResolveConversation);
   },
   destroyed() {
-    bus.$off(CMD_SNOOZE_CONVERSATION, this.onCmdSnoozeConversation);
-    bus.$off(CMD_REOPEN_CONVERSATION, this.onCmdOpenConversation);
-    bus.$off(CMD_RESOLVE_CONVERSATION, this.onCmdResolveConversation);
+    this.$emitter.off(CMD_REOPEN_CONVERSATION, this.onCmdOpenConversation);
+    this.$emitter.off(CMD_RESOLVE_CONVERSATION, this.onCmdResolveConversation);
   },
   methods: {
-    async handleKeyEvents(e) {
+    getKeyboardEvents() {
+      return {
+        'Alt+KeyM': {
+          action: () => this.$refs.arrowDownButton?.$el.click(),
+          allowOnFocusedInput: true,
+        },
+        'Alt+KeyE': this.resolveOrToast,
+        '$mod+Alt+KeyE': async event => {
+          const { all, activeIndex, lastIndex } = this.getConversationParams();
+          await this.resolveOrToast();
+
+          if (activeIndex < lastIndex) {
+            all[activeIndex + 1].click();
+          } else if (all.length > 1) {
+            all[0].click();
+            document.querySelector('.conversations-list').scrollTop = 0;
+          }
+
+          event.preventDefault();
+        },
+      };
+    },
+    getConversationParams() {
       const allConversations = document.querySelectorAll(
         '.conversations-list .conversation'
       );
-      if (hasPressedAltAndMKey(e)) {
-        if (this.$refs.arrowDownButton) {
-          this.$refs.arrowDownButton.$el.click();
-        }
-      }
-      if (hasPressedAltAndEKey(e)) {
-        const activeConversation = document.querySelector(
-          'div.conversations-list div.conversation.active'
-        );
-        const activeConversationIndex = [...allConversations].indexOf(
-          activeConversation
-        );
-        const lastConversationIndex = allConversations.length - 1;
-        try {
-          await this.toggleStatus(wootConstants.STATUS_TYPE.RESOLVED);
-        } catch (error) {
-          // error
-        }
-        if (hasPressedCommandPlusAltAndEKey(e)) {
-          if (activeConversationIndex < lastConversationIndex) {
-            allConversations[activeConversationIndex + 1].click();
-          } else if (allConversations.length > 1) {
-            allConversations[0].click();
-            document.querySelector('.conversations-list').scrollTop = 0;
-          }
-          e.preventDefault();
-        }
-      }
+
+      const activeConversation = document.querySelector(
+        'div.conversations-list div.conversation.active'
+      );
+      const activeConversationIndex = [...allConversations].indexOf(
+        activeConversation
+      );
+      const lastConversationIndex = allConversations.length - 1;
+
+      return {
+        all: allConversations,
+        activeIndex: activeConversationIndex,
+        lastIndex: lastConversationIndex,
+      };
     },
-    onCmdSnoozeConversation(snoozeType) {
-      if (snoozeType === wootConstants.SNOOZE_OPTIONS.UNTIL_CUSTOM_TIME) {
-        this.showCustomSnoozeModal = true;
-      } else {
-        this.toggleStatus(
-          this.STATUS_TYPE.SNOOZED,
-          findSnoozeTime(snoozeType) || null
-        );
+    async resolveOrToast() {
+      try {
+        await this.toggleStatus(wootConstants.STATUS_TYPE.RESOLVED);
+      } catch (error) {
+        // error
       }
-    },
-    chooseSnoozeTime(customSnoozeTime) {
-      this.showCustomSnoozeModal = false;
-      if (customSnoozeTime) {
-        this.toggleStatus(
-          this.STATUS_TYPE.SNOOZED,
-          getUnixTime(customSnoozeTime)
-        );
-      }
-    },
-    hideCustomSnoozeModal() {
-      this.showCustomSnoozeModal = false;
     },
     onCmdOpenConversation() {
       this.toggleStatus(this.STATUS_TYPE.OPEN);
@@ -237,7 +209,7 @@ export default {
           snoozedUntil,
         })
         .then(() => {
-          this.showAlert(this.$t('CONVERSATION.CHANGE_STATUS'));
+          useAlert(this.$t('CONVERSATION.CHANGE_STATUS'));
           this.isLoading = false;
         });
     },
@@ -249,23 +221,11 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-.resolve-actions {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-}
-
 .dropdown-pane {
-  left: unset;
-  top: 4.2rem;
-  margin-top: var(--space-micro);
-  right: 0;
-  max-width: 20rem;
-  min-width: 15.6rem;
+  @apply left-auto top-[2.625rem] mt-0.5 right-0 max-w-[12.5rem] min-w-[9.75rem];
 
   .dropdown-menu__item {
-    margin-bottom: 0;
+    @apply mb-0;
   }
 }
 </style>

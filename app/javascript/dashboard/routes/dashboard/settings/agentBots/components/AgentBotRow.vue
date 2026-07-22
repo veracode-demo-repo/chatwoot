@@ -1,5 +1,5 @@
 <template>
-  <tr>
+  <tr class="space-x-2">
     <td class="agent-bot--details">
       <div class="agent-bot--link">
         {{ agentBot.name }}
@@ -9,7 +9,7 @@
         <show-more :text="agentBot.description" :limit="120" />
       </div>
     </td>
-    <td class="button-wrapper">
+    <td class="flex justify-end gap-1">
       <woot-button
         v-if="isACSMLTypeBot"
         v-tooltip.top="$t('AGENT_BOTS.EDIT.BUTTON_TEXT')"
@@ -31,7 +31,7 @@
   </tr>
 </template>
 <script>
-import ShowMore from 'dashboard/components/widgets/ShowMore';
+import ShowMore from 'dashboard/components/widgets/ShowMore.vue';
 import AgentBotType from './AgentBotType.vue';
 
 export default {
@@ -57,14 +57,12 @@ export default {
 <style scoped lang="scss">
 .agent-bot--link {
   align-items: center;
-  color: var(--s-800);
   display: flex;
   font-weight: var(--font-weight-medium);
   word-break: break-word;
 }
 
 .agent-bot--description {
-  color: var(--s-700);
   font-size: var(--font-size-mini);
 }
 
@@ -76,14 +74,5 @@ export default {
 
 .agent-bot--details {
   width: 90%;
-}
-
-.button-wrapper {
-  max-width: var(--space-mega);
-  min-width: auto;
-
-  button:nth-child(2) {
-    margin-left: var(--space-normal);
-  }
 }
 </style>

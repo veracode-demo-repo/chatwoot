@@ -168,8 +168,12 @@ RSpec.describe '/api/v1/widget/conversations/toggle_typing', type: :request do
   describe 'POST /api/v1/widget/conversations/update_last_seen' do
     context 'with a conversation' do
       it 'returns the correct conversation params' do
+        current_time = DateTime.now.utc
+        allow(DateTime).to receive(:now).and_return(current_time)
+
         allow(Rails.configuration.dispatcher).to receive(:dispatch)
         expect(conversation.contact_last_seen_at).to be_nil
+        expect(Conversations::UpdateMessageStatusJob).to receive(:perform_later).with(conversation.id, current_time)
 
         post '/api/v1/widget/conversations/update_last_seen',
              headers: { 'X-Auth-Token' => token },
@@ -186,17 +190,19 @@ RSpec.describe '/api/v1/widget/conversations/toggle_typing', type: :request do
   describe 'POST /api/v1/widget/conversations/transcript' do
     context 'with a conversation' do
       it 'sends transcript email' do
+        contact.update(email: 'test@test.com')
         mailer = double
         allow(ConversationReplyMailer).to receive(:with).and_return(mailer)
         allow(mailer).to receive(:conversation_transcript)
 
         post '/api/v1/widget/conversations/transcript',
              headers: { 'X-Auth-Token' => token },
-             params: { website_token: web_widget.website_token, email: 'test@test.com' },
+             params: { website_token: web_widget.website_token },
              as: :json
 
         expect(response).to have_http_status(:success)
         expect(mailer).to have_received(:conversation_transcript).with(conversation, 'test@test.com')
+        contact.update(email: nil)
       end
     end
   end

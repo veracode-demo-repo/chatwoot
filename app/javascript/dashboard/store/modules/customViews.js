@@ -9,6 +9,7 @@ export const state = {
     isCreating: false,
     isDeleting: false,
   },
+  activeConversationFolder: null,
 };
 
 export const getters = {
@@ -21,15 +22,17 @@ export const getters = {
   getCustomViewsByFilterType: _state => filterType => {
     return _state.records.filter(record => record.filter_type === filterType);
   },
+  getActiveConversationFolder(_state) {
+    return _state.activeConversationFolder;
+  },
 };
 
 export const actions = {
   get: async function getCustomViews({ commit }, filterType) {
     commit(types.SET_CUSTOM_VIEW_UI_FLAG, { isFetching: true });
     try {
-      const response = await CustomViewsAPI.getCustomViewsByFilterType(
-        filterType
-      );
+      const response =
+        await CustomViewsAPI.getCustomViewsByFilterType(filterType);
       commit(types.SET_CUSTOM_VIEW, response.data);
     } catch (error) {
       // Ignore error
@@ -72,6 +75,9 @@ export const actions = {
       commit(types.SET_CUSTOM_VIEW_UI_FLAG, { isDeleting: false });
     }
   },
+  setActiveConversationFolder({ commit }, data) {
+    commit(types.SET_ACTIVE_CONVERSATION_FOLDER, data);
+  },
 };
 
 export const mutations = {
@@ -86,6 +92,10 @@ export const mutations = {
   [types.SET_CUSTOM_VIEW]: MutationHelpers.set,
   [types.UPDATE_CUSTOM_VIEW]: MutationHelpers.update,
   [types.DELETE_CUSTOM_VIEW]: MutationHelpers.destroy,
+
+  [types.SET_ACTIVE_CONVERSATION_FOLDER](_state, folder) {
+    _state.activeConversationFolder = folder;
+  },
 };
 
 export default {

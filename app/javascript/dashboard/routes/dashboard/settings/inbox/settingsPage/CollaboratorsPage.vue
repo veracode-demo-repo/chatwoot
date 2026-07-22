@@ -31,8 +31,8 @@
       :title="$t('INBOX_MGMT.SETTINGS_POPUP.AGENT_ASSIGNMENT')"
       :sub-title="$t('INBOX_MGMT.SETTINGS_POPUP.AGENT_ASSIGNMENT_SUB_TEXT')"
     >
-      <label class="medium-9 columns settings-item">
-        <div class="enter-to-send--checkbox">
+      <label class="w-3/4 settings-item">
+        <div class="flex items-center gap-2">
           <input
             id="enableAutoAssignment"
             v-model="enableAutoAssignment"
@@ -44,7 +44,7 @@
           </label>
         </div>
 
-        <p class="help-text">
+        <p class="pb-1 text-sm not-italic text-slate-600 dark:text-slate-400">
           {{ $t('INBOX_MGMT.SETTINGS_POPUP.AUTO_ASSIGNMENT_SUB_TEXT') }}
         </p>
       </label>
@@ -62,7 +62,7 @@
           @blur="$v.maxAssignmentLimit.$touch"
         />
 
-        <p class="help-text">
+        <p class="pb-1 text-sm not-italic text-slate-600 dark:text-slate-400">
           {{ $t('INBOX_MGMT.AUTO_ASSIGNMENT.MAX_ASSIGNMENT_LIMIT_SUB_TEXT') }}
         </p>
 
@@ -79,15 +79,15 @@
 <script>
 import { mapGetters } from 'vuex';
 import { minValue } from 'vuelidate/lib/validators';
-import alertMixin from 'shared/mixins/alertMixin';
+import { useAlert } from 'dashboard/composables';
 import configMixin from 'shared/mixins/configMixin';
-import SettingsSection from '../../../../../components/SettingsSection';
+import SettingsSection from '../../../../../components/SettingsSection.vue';
 
 export default {
   components: {
     SettingsSection,
   },
-  mixins: [alertMixin, configMixin],
+  mixins: [configMixin],
   props: {
     inbox: {
       type: Object,
@@ -127,7 +127,7 @@ export default {
     setDefaults() {
       this.enableAutoAssignment = this.inbox.enable_auto_assignment;
       this.maxAssignmentLimit =
-        this.inbox.auto_assignment_config.max_assignment_limit || null;
+        this.inbox?.auto_assignment_config?.max_assignment_limit || null;
       this.fetchAttachedAgents();
     },
     async fetchAttachedAgents() {
@@ -154,9 +154,9 @@ export default {
           inboxId: this.inbox.id,
           agentList,
         });
-        this.showAlert(this.$t('AGENT_MGMT.EDIT.API.SUCCESS_MESSAGE'));
+        useAlert(this.$t('AGENT_MGMT.EDIT.API.SUCCESS_MESSAGE'));
       } catch (error) {
-        this.showAlert(this.$t('AGENT_MGMT.EDIT.API.ERROR_MESSAGE'));
+        useAlert(this.$t('AGENT_MGMT.EDIT.API.ERROR_MESSAGE'));
       }
       this.isAgentListUpdating = false;
     },
@@ -171,9 +171,9 @@ export default {
           },
         };
         await this.$store.dispatch('inboxes/updateInbox', payload);
-        this.showAlert(this.$t('INBOX_MGMT.EDIT.API.SUCCESS_MESSAGE'));
+        useAlert(this.$t('INBOX_MGMT.EDIT.API.SUCCESS_MESSAGE'));
       } catch (error) {
-        this.showAlert(this.$t('INBOX_MGMT.EDIT.API.SUCCESS_MESSAGE'));
+        useAlert(this.$t('INBOX_MGMT.EDIT.API.SUCCESS_MESSAGE'));
       }
     },
   },

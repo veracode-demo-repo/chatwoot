@@ -36,8 +36,10 @@ export default {
     isDefaultScreen() {
       return (
         this.config.isDefaultScreen &&
-        (this.config.welcomeHeading.length !== 0 ||
-          this.config.welcomeTagline.length !== 0)
+        ((this.config.welcomeHeading &&
+          this.config.welcomeHeading.length !== 0) ||
+          (this.config.welcomeTagLine &&
+            this.config.welcomeTagline.length !== 0))
       );
     },
   },
@@ -58,7 +60,7 @@ export default {
       align-items: center;
       display: flex;
       flex-direction: row;
-      justify-content: start;
+      justify-content: flex-start;
 
       .logo {
         border-radius: 100%;

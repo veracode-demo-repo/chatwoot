@@ -13,6 +13,7 @@ import {
   inboxes,
   languages,
   countries,
+  slaPolicies,
   MESSAGE_CONDITION_VALUES,
   automationToSubmit,
   savedAutomation,
@@ -35,7 +36,9 @@ Vue.use(Vuelidate);
 const createComponent = (
   mixins,
   data,
+  // eslint-disable-next-line default-param-last
   computed = {},
+  // eslint-disable-next-line default-param-last
   methods = {},
   validations
 ) => {
@@ -86,6 +89,9 @@ const generateComputedProperties = () => {
     },
     countries() {
       return countries;
+    },
+    slaPolicies() {
+      return slaPolicies;
     },
     MESSAGE_CONDITION_VALUES() {
       return MESSAGE_CONDITION_VALUES;
@@ -430,6 +436,9 @@ describe('automationMethodsMixin', () => {
       },
       teams() {
         return teams;
+      },
+      slaPolicies() {
+        return slaPolicies;
       },
     };
     const expectedActionDropdownValues = [

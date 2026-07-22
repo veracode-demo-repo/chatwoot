@@ -73,10 +73,27 @@
       }
     },
     "SLACK": {
+      "DELETE": "Eliminar",
+      "DELETE_CONFIRMATION": {
+        "TITLE": "Eliminar la integración",
+        "MESSAGE": "¿Está seguro que desea eliminar la integración? Si lo hace, perderá el acceso a las conversaciones en su espacio de trabajo Slack."
+      },
       "HELP_TEXT": {
-        "TITLE": "Utilizando integración de Slack",
-        "BODY": "<br/><p>Chatwoot ahora sincronizará todas las conversaciones entrantes en el canal <b><i>de conversaciones del cliente</i></b> dentro de tu lugar de trabajo slack.</p><p>Respondiendo a un tema de conversación en <b><i>conversaciones de clientes</i></b> canal de slack creará una respuesta al cliente a través de chatwoot.</p><p>Inicie las respuestas con <b><i>nota:</i></b> para crear notas privadas en lugar de respuestas.</p><p>Si el respondente de slack tiene un perfil de agente en el chatwoot bajo el mismo correo electrónico, las respuestas se asociarán en consecuencia.</p><p>Cuando el replicador no tiene un perfil de agente asociado, las respuestas se harán con el perfil del bot.</p>"
-      }
+        "TITLE": "¿Cómo utilizar la Integración Slack?",
+        "BODY": "<br/><p>Chatwoot ahora sincronizará todas las conversaciones entrantes en el canal <b><i>de conversaciones del cliente</i></b> dentro de tu lugar de trabajo slack.</p><p>Respondiendo a un tema de conversación en <b><i>conversaciones de clientes</i></b> canal de slack creará una respuesta al cliente a través de chatwoot.</p><p>Inicie las respuestas con <b><i>nota:</i></b> para crear notas privadas en lugar de respuestas.</p><p>Si el respondente de slack tiene un perfil de agente en el chatwoot bajo el mismo correo electrónico, las respuestas se asociarán en consecuencia.</p><p>Cuando el replicador no tiene un perfil de agente asociado, las respuestas se harán con el perfil del bot.</p>",
+        "SELECTED": "seleccionado"
+      },
+      "SELECT_CHANNEL": {
+        "OPTION_LABEL": "Seleccione un canal",
+        "UPDATE": "Actualizar",
+        "BUTTON_TEXT": "Conectar canal",
+        "DESCRIPTION": "Su espacio de trabajo de Slack ahora esta enlazado con Chatwoot. Sin embarbo, la integración esta actualmente inactiva. Para activar la integración y conectar un canal a Chatwoot, por favor haga clic en el siguiente boton.\n\n**Nota.** Si esta intentando conectar un canal privado, agregue la aplicación Chatwoot al canal de Slack antes de proceder con este paso.",
+        "ATTENTION_REQUIRED": "Atención requerida",
+        "EXPIRED": "Su integración de Slack ha caducado. Para continuar recibiendo mensajes en Slack, por favor elimine la integración y vuelva a conectar su área de trabajo."
+      },
+      "UPDATE_ERROR": "Se presento un error actualizando la integración, por favor inténtelo nuevamente",
+      "UPDATE_SUCCESS": "El canal está conectado correctamente",
+      "FAILED_TO_FETCH_CHANNELS": "Hubo un error obteniendo los canales de Slack, por favor inténtalo de nuevo"
     },
     "DYTE": {
       "CLICK_HERE_TO_JOIN": "Haga clic aquí para unirse",
@@ -86,6 +103,40 @@
       "CREATE_ERROR": "Hubo un error al crear un enlace de reunión, por favor inténtelo de nuevo"
     },
     "OPEN_AI": {
+      "AI_ASSIST": "Asistencia AI",
+      "WITH_AI": " %{option} con IA ",
+      "OPTIONS": {
+        "REPLY_SUGGESTION": "Responder sugerencia",
+        "SUMMARIZE": "Resumir",
+        "REPHRASE": "Mejorar escritura",
+        "FIX_SPELLING_GRAMMAR": "Corregir ortografía y gramática",
+        "SHORTEN": "Acortar",
+        "EXPAND": "Expandir",
+        "MAKE_FRIENDLY": "Cambiar tono de mensaje a amigable",
+        "MAKE_FORMAL": "Usar tono formal",
+        "SIMPLIFY": "Simplificar"
+      },
+      "ASSISTANCE_MODAL": {
+        "DRAFT_TITLE": "Contenido de borrador",
+        "GENERATED_TITLE": "Contenido generado",
+        "AI_WRITING": "AI está escribiendo",
+        "BUTTONS": {
+          "APPLY": "Usar esta sugerencia",
+          "CANCEL": "Cancelar"
+        }
+      },
+      "CTA_MODAL": {
+        "TITLE": "Integrar con OpenAI",
+        "DESC": "Trae las características avanzadas de IA a tu panel de control con los modelos GPT de OpenAI. Para empezar, introduce la clave API desde tu cuenta OpenAI.",
+        "KEY_PLACEHOLDER": "Introduzca su clave API OpenAI",
+        "BUTTONS": {
+          "NEED_HELP": "¿Necesitas ayuda?",
+          "DISMISS": "Descartar",
+          "FINISH": "Finalizar configuración"
+        },
+        "DISMISS_MESSAGE": "Puedes configurar la integración OpenAI más tarde cuando quieras.",
+        "SUCCESS_MESSAGE": "Configuración de integración OpenAI exitosa"
+      },
       "TITLE": "Mejorar con IA",
       "SUMMARY_TITLE": "Resumen con IA",
       "REPLY_TITLE": "Responder sugerencia con IA",
@@ -102,7 +153,7 @@
         "GENERATING": "Generando...",
         "CANCEL": "Cancelar"
       },
-      "GENERATE_ERROR": "Hubo un error al procesar el contenido, por favor inténtelo de nuevo"
+      "GENERATE_ERROR": "Hubo un error al procesar el contenido, por favor verifique su clave API OpenAI e inténtelo de nuevo"
     },
     "DELETE": {
       "BUTTON_TEXT": "Eliminar",
@@ -157,6 +208,87 @@
         "MESSAGE": "¿Está seguro que desea eliminar la aplicación - %{appName}?",
         "API_SUCCESS": "Panel de control eliminado con éxito",
         "API_ERROR": "No pudimos eliminar la aplicación. Por favor, inténtalo de nuevo más tarde"
+      }
+    },
+    "LINEAR": {
+      "ADD_OR_LINK_BUTTON": "Create/Link Linear Issue",
+      "LOADING": "Fetching linear issues...",
+      "LOADING_ERROR": "There was an error fetching the linear issues, please try again",
+      "CREATE": "Crear",
+      "LINK": {
+        "SEARCH": "Search issues",
+        "SELECT": "Select issue",
+        "TITLE": "Enlace",
+        "EMPTY_LIST": "No linear issues found",
+        "LOADING": "Cargando",
+        "ERROR": "There was an error fetching the linear issues, please try again",
+        "LINK_SUCCESS": "Issue linked successfully",
+        "LINK_ERROR": "There was an error linking the issue, please try again",
+        "LINK_TITLE": "Conversation (#%{conversationId}) with %{name}"
+      },
+      "ADD_OR_LINK": {
+        "TITLE": "Create/link linear issue",
+        "DESCRIPTION": "Create Linear issues from conversations, or link existing ones for seamless tracking.",
+        "FORM": {
+          "TITLE": {
+            "LABEL": "Título",
+            "PLACEHOLDER": "Introducir título",
+            "REQUIRED_ERROR": "El título es obligatorio"
+          },
+          "DESCRIPTION": {
+            "LABEL": "Descripción",
+            "PLACEHOLDER": "Introducir descripción"
+          },
+          "TEAM": {
+            "LABEL": "Equipo",
+            "PLACEHOLDER": "Seleccionar equipo",
+            "SEARCH": "Buscar equipos",
+            "REQUIRED_ERROR": "El equipo es requerido"
+          },
+          "ASSIGNEE": {
+            "LABEL": "Cesionario",
+            "PLACEHOLDER": "Seleccionar asignado",
+            "SEARCH": "Buscar asignado"
+          },
+          "PRIORITY": {
+            "LABEL": "Prioridad",
+            "PLACEHOLDER": "Seleccionar prioridad",
+            "SEARCH": "Buscar prioridad"
+          },
+          "LABEL": {
+            "LABEL": "Etiqueta",
+            "PLACEHOLDER": "Seleecionar etiqueta",
+            "SEARCH": "Buscar etiqueta"
+          },
+          "STATUS": {
+            "LABEL": "Estado",
+            "PLACEHOLDER": "Seleccionar estado",
+            "SEARCH": "Buscar estado"
+          },
+          "PROJECT": {
+            "LABEL": "Proyecto",
+            "PLACEHOLDER": "Seleccionar proyecto",
+            "SEARCH": "Buscar proyecto"
+          }
+        },
+        "CREATE": "Crear",
+        "CANCEL": "Cancelar",
+        "CREATE_SUCCESS": "Issue created successfully",
+        "CREATE_ERROR": "There was an error creating the issue, please try again",
+        "LOADING_TEAM_ERROR": "There was an error fetching the teams, please try again",
+        "LOADING_TEAM_ENTITIES_ERROR": "There was an error fetching the team entities, please try again"
+      },
+      "ISSUE": {
+        "STATUS": "Estado",
+        "PRIORITY": "Prioridad",
+        "ASSIGNEE": "Cesionario",
+        "LABELS": "Etiquetas",
+        "CREATED_AT": "Created at %{createdAt}"
+      },
+      "UNLINK": {
+        "TITLE": "Unlink",
+        "SUCCESS": "Issue unlinked successfully",
+        "ERROR": "There was an error unlinking the issue, please try again"
       }
     }
   }

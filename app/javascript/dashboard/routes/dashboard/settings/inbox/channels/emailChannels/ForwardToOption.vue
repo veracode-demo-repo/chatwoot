@@ -1,11 +1,13 @@
 <template>
-  <div class="wizard-body small-9 columns">
+  <div
+    class="border border-slate-25 dark:border-slate-800/60 bg-white dark:bg-slate-900 h-full p-6 w-full max-w-full md:w-3/4 md:max-w-[75%] flex-shrink-0 flex-grow-0"
+  >
     <page-header
       :header-title="$t('INBOX_MGMT.ADD.EMAIL_CHANNEL.TITLE')"
       :header-content="$t('INBOX_MGMT.ADD.EMAIL_CHANNEL.DESC')"
     />
-    <form class="row" @submit.prevent="createChannel()">
-      <div class="medium-8 columns">
+    <form class="flex flex-wrap mx-0" @submit.prevent="createChannel()">
+      <div class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%]">
         <label :class="{ error: $v.channelName.$error }">
           {{ $t('INBOX_MGMT.ADD.EMAIL_CHANNEL.CHANNEL_NAME.LABEL') }}
           <input
@@ -22,7 +24,7 @@
         </label>
       </div>
 
-      <div class="medium-8 columns">
+      <div class="w-[65%] flex-shrink-0 flex-grow-0 max-w-[65%]">
         <label :class="{ error: $v.email.$error }">
           {{ $t('INBOX_MGMT.ADD.EMAIL_CHANNEL.EMAIL.LABEL') }}
           <input
@@ -37,7 +39,7 @@
         </p>
       </div>
 
-      <div class="medium-12 columns">
+      <div class="w-full">
         <woot-submit-button
           :loading="uiFlags.isCreating"
           :button-text="$t('INBOX_MGMT.ADD.EMAIL_CHANNEL.SUBMIT_BUTTON')"
@@ -49,16 +51,15 @@
 
 <script>
 import { mapGetters } from 'vuex';
-import alertMixin from 'shared/mixins/alertMixin';
+import { useAlert } from 'dashboard/composables';
 import { required, email } from 'vuelidate/lib/validators';
 import router from '../../../../../index';
-import PageHeader from '../../../SettingsSubPageHeader';
+import PageHeader from '../../../SettingsSubPageHeader.vue';
 
 export default {
   components: {
     PageHeader,
   },
-  mixins: [alertMixin],
   data() {
     return {
       channelName: '',
@@ -106,7 +107,7 @@ export default {
         this.alertMessage =
           errorMessage ||
           this.$t('INBOX_MGMT.ADD.EMAIL_CHANNEL.API.ERROR_MESSAGE');
-        this.showAlert(this.alertMessage);
+        useAlert(this.alertMessage);
       }
     },
   },

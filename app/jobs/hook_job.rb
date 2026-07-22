@@ -2,11 +2,15 @@ class HookJob < ApplicationJob
   queue_as :medium
 
   def perform(hook, event_name, event_data = {})
+    return if hook.disabled?
+
     case hook.app_id
     when 'slack'
       process_slack_integration(hook, event_name, event_data)
     when 'dialogflow'
       process_dialogflow_integration(hook, event_name, event_data)
+    when 'captain'
+      process_captain_integration(hook, event_name, event_data)
     when 'google_translate'
       google_translate_integration(hook, event_name, event_data)
     end
@@ -31,6 +35,12 @@ class HookJob < ApplicationJob
     return unless ['message.created', 'message.updated'].include?(event_name)
 
     Integrations::Dialogflow::ProcessorService.new(event_name: event_name, hook: hook, event_data: event_data).perform
+  end
+
+  def process_captain_integration(hook, event_name, event_data)
+    return unless ['message.created'].include?(event_name)
+
+    Integrations::Captain::ProcessorService.new(event_name: event_data, hook: hook, event_data: event_data).perform
   end
 
   def google_translate_integration(hook, event_name, event_data)

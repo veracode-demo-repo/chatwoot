@@ -1,10 +1,14 @@
 <template>
   <div
-    v-show="activeLabels.length"
+    v-if="activeLabels.length || $slots.before"
     ref="labelContainer"
-    class="label-container"
+    v-resize="computeVisibleLabelPosition"
   >
-    <div class="labels-wrap" :class="{ expand: showAllLabels }">
+    <div
+      class="flex items-end flex-shrink min-w-0 gap-y-1"
+      :class="{ 'h-auto overflow-visible flex-row flex-wrap': showAllLabels }"
+    >
+      <slot name="before" />
       <woot-label
         v-for="(label, index) in activeLabels"
         :key="label.id"
@@ -12,6 +16,7 @@
         :description="label.description"
         :color="label.color"
         variant="smooth"
+        class="!mb-0 max-w-[calc(100%-0.5rem)]"
         small
         :class="{ hidden: !showAllLabels && index > labelPosition }"
       />
@@ -22,7 +27,7 @@
             ? $t('CONVERSATION.CARD.HIDE_LABELS')
             : $t('CONVERSATION.CARD.SHOW_LABELS')
         "
-        class="show-more--button"
+        class="sticky right-0 flex-shrink-0 mr-6 show-more--button rtl:rotate-180"
         color-scheme="secondary"
         variant="hollow"
         :icon="showAllLabels ? 'chevron-left' : 'chevron-right'"
@@ -41,6 +46,11 @@ export default {
       type: Number,
       required: true,
     },
+    conversationLabels: {
+      type: String,
+      required: false,
+      default: '',
+    },
   },
   data() {
     return {
@@ -55,26 +65,34 @@ export default {
     },
   },
   mounted() {
+    // the problem here is that there is a certain amount of delay between the conversation
+    // card being mounted and the resize event eventually being triggered
+    // This means we need to run the function immediately after the component is mounted
+    // Happens especially when used in a virtual list.
+    // We can make the first trigger, a standard part of the directive, in case
+    // we face this issue again
     this.computeVisibleLabelPosition();
   },
   methods: {
     onShowLabels(e) {
       e.stopPropagation();
       this.showAllLabels = !this.showAllLabels;
+      this.$nextTick(() => this.computeVisibleLabelPosition());
     },
     computeVisibleLabelPosition() {
+      const beforeSlot = this.$slots.before ? 100 : 0;
       const labelContainer = this.$refs.labelContainer;
-      const labels = this.$refs.labelContainer.querySelectorAll('.label');
+      if (!labelContainer) return;
+
+      const labels = Array.from(labelContainer.querySelectorAll('.label'));
       let labelOffset = 0;
       this.showExpandLabelButton = false;
-
-      Array.from(labels).forEach((label, index) => {
+      labels.forEach((label, index) => {
         labelOffset += label.offsetWidth + 8;
-
-        if (labelOffset < labelContainer.clientWidth - 16) {
+        if (labelOffset < labelContainer.clientWidth - 16 - beforeSlot) {
           this.labelPosition = index;
         } else {
-          this.showExpandLabelButton = true;
+          this.showExpandLabelButton = labels.length > 1;
         }
       });
     },
@@ -84,53 +102,19 @@ export default {
 
 <style lang="scss" scoped>
 .show-more--button {
-  height: var(--space-two);
-  position: sticky;
-  flex-shrink: 0;
-  right: 0;
-  margin-right: var(--space-medium);
-
+  @apply h-5;
   &.secondary:focus {
-    color: var(--s-700);
-    border-color: var(--s-300);
+    @apply text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-700;
   }
-}
-
-.label-container {
-  margin: var(--space-micro) var(--space-small) 0;
 }
 
 .labels-wrap {
-  display: flex;
-  align-items: center;
-  min-width: 0;
-  flex-shrink: 1;
-
-  &.expand {
-    height: auto;
-    overflow: visible;
-    flex-flow: row wrap;
-
-    .label {
-      margin-bottom: var(--space-smaller);
-    }
-
-    .show-more--button {
-      margin-bottom: var(--space-smaller);
-    }
-  }
-
   .secondary {
-    border: 1px solid var(--s-100);
-  }
-
-  .label {
-    margin-bottom: 0;
+    @apply border border-solid border-slate-100 dark:border-slate-700;
   }
 }
 
 .hidden {
-  visibility: hidden;
-  position: absolute;
+  @apply invisible absolute;
 }
 </style>

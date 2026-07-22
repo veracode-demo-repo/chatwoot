@@ -1,6 +1,6 @@
 <template>
-  <form class="row" @submit.prevent="onSubmit">
-    <div class="medium-12 columns">
+  <form class="flex flex-col w-full" @submit.prevent="onSubmit">
+    <div class="w-full">
       <label :class="{ error: $v.url.$error }">
         {{ $t('INTEGRATION_SETTINGS.WEBHOOK.FORM.END_POINT.LABEL') }}
         <input
@@ -14,26 +14,32 @@
           {{ $t('INTEGRATION_SETTINGS.WEBHOOK.FORM.END_POINT.ERROR') }}
         </span>
       </label>
-      <label :class="{ error: $v.url.$error }" class="margin-bottom-small">
+      <label :class="{ error: $v.url.$error }" class="mb-2">
         {{ $t('INTEGRATION_SETTINGS.WEBHOOK.FORM.SUBSCRIPTIONS.LABEL') }}
       </label>
-      <div v-for="event in supportedWebhookEvents" :key="event">
-        <input
-          :id="event"
-          v-model="subscriptions"
-          type="checkbox"
-          :value="event"
-          name="subscriptions"
-          class="margin-right-1"
-        />
-        <span class="fs-small">
-          {{ `${getEventLabel(event)} (${event})` }}
-        </span>
+      <div class="flex flex-col gap-2.5 mb-4">
+        <div
+          v-for="event in supportedWebhookEvents"
+          :key="event"
+          class="flex items-center"
+        >
+          <input
+            :id="event"
+            v-model="subscriptions"
+            type="checkbox"
+            :value="event"
+            name="subscriptions"
+            class="checkbox"
+          />
+          <label :for="event" class="text-sm">
+            {{ `${getEventLabel(event)} (${event})` }}
+          </label>
+        </div>
       </div>
     </div>
 
-    <div class="modal-footer">
-      <div class="medium-12 columns">
+    <div class="flex flex-row justify-end gap-2 py-2 px-0 w-full">
+      <div class="w-full">
         <woot-button
           :disabled="$v.$invalid || isSubmitting"
           :is-loading="isSubmitting"
@@ -119,3 +125,8 @@ export default {
   },
 };
 </script>
+<style lang="scss" scoped>
+.checkbox {
+  @apply mr-2;
+}
+</style>

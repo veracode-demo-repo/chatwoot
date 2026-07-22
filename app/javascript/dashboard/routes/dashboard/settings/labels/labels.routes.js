@@ -1,6 +1,7 @@
-import SettingsContent from '../Wrapper';
-import Index from './Index';
 import { frontendURL } from '../../../../helper/URLHelper';
+
+const SettingsContent = () => import('../Wrapper.vue');
+const Index = () => import('./Index.vue');
 
 export default {
   routes: [
@@ -16,13 +17,17 @@ export default {
         {
           path: '',
           name: 'labels_wrapper',
-          roles: ['administrator'],
+          meta: {
+            permissions: ['administrator'],
+          },
           redirect: 'list',
         },
         {
           path: 'list',
           name: 'labels_list',
-          roles: ['administrator'],
+          meta: {
+            permissions: ['administrator'],
+          },
           component: Index,
         },
       ],

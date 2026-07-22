@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/no-mutating-props -->
 <template>
   <modal :show.sync="show" :on-close="onClose">
     <woot-modal-header
@@ -5,7 +6,7 @@
       :header-content="message"
       :header-content-value="messageValue"
     />
-    <div class="modal-footer delete-item">
+    <div class="flex justify-end items-center gap-2 p-8">
       <woot-button variant="clear" class="action-button" @click="onClose">
         {{ rejectText }}
       </woot-button>
@@ -22,7 +23,7 @@
 </template>
 
 <script>
-import Modal from '../../Modal';
+import Modal from '../../Modal.vue';
 
 export default {
   components: {

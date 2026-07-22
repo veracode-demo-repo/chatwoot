@@ -1,12 +1,15 @@
-import Index from './Index';
-import AgentReports from './AgentReports';
-import LabelReports from './LabelReports';
-import InboxReports from './InboxReports';
-import TeamReports from './TeamReports';
-import CsatResponses from './CsatResponses';
-import LiveReports from './LiveReports';
-import SettingsContent from '../Wrapper';
 import { frontendURL } from '../../../../helper/URLHelper';
+
+const SettingsContent = () => import('../Wrapper.vue');
+const Index = () => import('./Index.vue');
+const AgentReports = () => import('./AgentReports.vue');
+const LabelReports = () => import('./LabelReports.vue');
+const InboxReports = () => import('./InboxReports.vue');
+const TeamReports = () => import('./TeamReports.vue');
+const CsatResponses = () => import('./CsatResponses.vue');
+const BotReports = () => import('./BotReports.vue');
+const LiveReports = () => import('./LiveReports.vue');
+const SLAReports = () => import('./SLAReports.vue');
 
 export default {
   routes: [
@@ -26,7 +29,9 @@ export default {
         {
           path: 'overview',
           name: 'account_overview_reports',
-          roles: ['administrator'],
+          meta: {
+            permissions: ['administrator'],
+          },
           component: LiveReports,
         },
       ],
@@ -43,7 +48,9 @@ export default {
         {
           path: 'conversation',
           name: 'conversation_reports',
-          roles: ['administrator'],
+          meta: {
+            permissions: ['administrator'],
+          },
           component: Index,
         },
       ],
@@ -60,8 +67,29 @@ export default {
         {
           path: 'csat',
           name: 'csat_reports',
-          roles: ['administrator'],
+          meta: {
+            permissions: ['administrator'],
+          },
           component: CsatResponses,
+        },
+      ],
+    },
+    {
+      path: frontendURL('accounts/:accountId/reports'),
+      component: SettingsContent,
+      props: {
+        headerTitle: 'BOT_REPORTS.HEADER',
+        icon: 'bot',
+        keepAlive: false,
+      },
+      children: [
+        {
+          path: 'bot',
+          name: 'bot_reports',
+          meta: {
+            permissions: ['administrator'],
+          },
+          component: BotReports,
         },
       ],
     },
@@ -77,7 +105,9 @@ export default {
         {
           path: 'agent',
           name: 'agent_reports',
-          roles: ['administrator'],
+          meta: {
+            permissions: ['administrator'],
+          },
           component: AgentReports,
         },
       ],
@@ -94,7 +124,9 @@ export default {
         {
           path: 'label',
           name: 'label_reports',
-          roles: ['administrator'],
+          meta: {
+            permissions: ['administrator'],
+          },
           component: LabelReports,
         },
       ],
@@ -111,7 +143,9 @@ export default {
         {
           path: 'inboxes',
           name: 'inbox_reports',
-          roles: ['administrator'],
+          meta: {
+            permissions: ['administrator'],
+          },
           component: InboxReports,
         },
       ],
@@ -127,8 +161,29 @@ export default {
         {
           path: 'teams',
           name: 'team_reports',
-          roles: ['administrator'],
+          meta: {
+            permissions: ['administrator'],
+          },
           component: TeamReports,
+        },
+      ],
+    },
+    {
+      path: frontendURL('accounts/:accountId/reports'),
+      component: SettingsContent,
+      props: {
+        headerTitle: 'SLA_REPORTS.HEADER',
+        icon: 'document-list-clock',
+        keepAlive: false,
+      },
+      children: [
+        {
+          path: 'sla',
+          name: 'sla_reports',
+          meta: {
+            permissions: ['administrator'],
+          },
+          component: SLAReports,
         },
       ],
     },

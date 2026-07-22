@@ -1,10 +1,10 @@
 <template>
   <woot-modal :show.sync="show" :on-close="onClose">
-    <div class="column content-box">
+    <div class="flex flex-col h-auto overflow-auto">
       <woot-modal-header :header-title="$t('ATTRIBUTES_MGMT.ADD.TITLE')" />
 
-      <form class="row" @submit.prevent="addAttributes">
-        <div class="medium-12 columns">
+      <form class="flex w-full" @submit.prevent="addAttributes">
+        <div class="w-full">
           <label :class="{ error: $v.attributeModel.$error }">
             {{ $t('ATTRIBUTES_MGMT.ADD.FORM.MODEL.LABEL') }}
             <select v-model="attributeModel">
@@ -86,7 +86,31 @@
               {{ $t('ATTRIBUTES_MGMT.ADD.FORM.TYPE.LIST.ERROR') }}
             </label>
           </div>
-          <div class="modal-footer">
+          <div v-if="isAttributeTypeText">
+            <input
+              v-model="regexEnabled"
+              type="checkbox"
+              @input="toggleRegexEnabled"
+            />
+            {{ $t('ATTRIBUTES_MGMT.ADD.FORM.ENABLE_REGEX.LABEL') }}
+          </div>
+          <woot-input
+            v-if="isAttributeTypeText && isRegexEnabled"
+            v-model="regexPattern"
+            :label="$t('ATTRIBUTES_MGMT.ADD.FORM.REGEX_PATTERN.LABEL')"
+            type="text"
+            :placeholder="
+              $t('ATTRIBUTES_MGMT.ADD.FORM.REGEX_PATTERN.PLACEHOLDER')
+            "
+          />
+          <woot-input
+            v-if="isAttributeTypeText && isRegexEnabled"
+            v-model="regexCue"
+            :label="$t('ATTRIBUTES_MGMT.ADD.FORM.REGEX_CUE.LABEL')"
+            type="text"
+            :placeholder="$t('ATTRIBUTES_MGMT.ADD.FORM.REGEX_CUE.PLACEHOLDER')"
+          />
+          <div class="flex flex-row justify-end w-full gap-2 px-0 py-2">
             <woot-submit-button
               :disabled="isButtonDisabled"
               :button-text="$t('ATTRIBUTES_MGMT.ADD.SUBMIT')"
@@ -104,12 +128,11 @@
 <script>
 import { required, minLength } from 'vuelidate/lib/validators';
 import { mapGetters } from 'vuex';
+import { useAlert } from 'dashboard/composables';
 import { convertToAttributeSlug } from 'dashboard/helper/commons.js';
 import { ATTRIBUTE_MODELS, ATTRIBUTE_TYPES } from './constants';
-import alertMixin from 'shared/mixins/alertMixin';
 
 export default {
-  mixins: [alertMixin],
   props: {
     onClose: {
       type: Function,
@@ -124,6 +147,9 @@ export default {
       attributeModel: 0,
       attributeType: 0,
       attributeKey: '',
+      regexPattern: null,
+      regexCue: null,
+      regexEnabled: false,
       models: ATTRIBUTE_MODELS,
       types: ATTRIBUTE_TYPES,
       values: [],
@@ -163,6 +189,12 @@ export default {
     isAttributeTypeList() {
       return this.attributeType === 6;
     },
+    isAttributeTypeText() {
+      return this.attributeType === 0;
+    },
+    isRegexEnabled() {
+      return this.regexEnabled;
+    },
   },
 
   validations: {
@@ -201,10 +233,17 @@ export default {
     onDisplayNameChange() {
       this.attributeKey = convertToAttributeSlug(this.displayName);
     },
+    toggleRegexEnabled() {
+      this.regexEnabled = !this.regexEnabled;
+    },
     async addAttributes() {
       this.$v.$touch();
       if (this.$v.$invalid) {
         return;
+      }
+      if (!this.regexEnabled) {
+        this.regexPattern = null;
+        this.regexCue = null;
       }
       try {
         await this.$store.dispatch('attributes/create', {
@@ -214,6 +253,10 @@ export default {
           attribute_display_type: this.attributeType,
           attribute_key: this.attributeKey,
           attribute_values: this.attributeListValues,
+          regex_pattern: this.regexPattern
+            ? new RegExp(this.regexPattern).toString()
+            : null,
+          regex_cue: this.regexCue,
         });
         this.alertMessage = this.$t('ATTRIBUTES_MGMT.ADD.API.SUCCESS_MESSAGE');
         this.onClose();
@@ -222,7 +265,7 @@ export default {
         this.alertMessage =
           errorMessage || this.$t('ATTRIBUTES_MGMT.ADD.API.ERROR_MESSAGE');
       } finally {
-        this.showAlert(this.alertMessage);
+        useAlert(this.alertMessage);
       }
     },
   },

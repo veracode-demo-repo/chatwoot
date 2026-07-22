@@ -53,6 +53,7 @@ class ContactAPI extends ApiClient {
     return axios.get(requestURL);
   }
 
+  // eslint-disable-next-line default-param-last
   filter(page = 1, sortAttr = 'name', queryPayload) {
     let requestURL = `${this.url}/filter?${buildContactParams(page, sortAttr)}`;
     return axios.post(requestURL, queryPayload);
@@ -76,8 +77,8 @@ class ContactAPI extends ApiClient {
     return axios.delete(`${this.url}/${contactId}/avatar`);
   }
 
-  exportContacts() {
-    return axios.get(`${this.url}/export`);
+  exportContacts(queryPayload) {
+    return axios.post(`${this.url}/export`, queryPayload);
   }
 }
 

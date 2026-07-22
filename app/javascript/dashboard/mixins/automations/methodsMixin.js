@@ -17,6 +17,7 @@ import {
   generateCustomAttributes,
 } from 'dashboard/helper/automationHelper';
 import { mapGetters } from 'vuex';
+import { useAlert } from 'dashboard/composables';
 
 export default {
   computed: {
@@ -27,6 +28,7 @@ export default {
       inboxes: 'inboxes/getInboxes',
       labels: 'labels/getLabels',
       teams: 'teams/getTeams',
+      slaPolicies: 'sla/getSLA',
     }),
     booleanFilterOptions() {
       return [
@@ -137,14 +139,14 @@ export default {
     },
     removeFilter(index) {
       if (this.automation.conditions.length <= 1) {
-        this.showAlert(this.$t('AUTOMATION.CONDITION.DELETE_MESSAGE'));
+        useAlert(this.$t('AUTOMATION.CONDITION.DELETE_MESSAGE'));
       } else {
         this.automation.conditions.splice(index, 1);
       }
     },
     removeAction(index) {
       if (this.automation.actions.length <= 1) {
-        this.showAlert(this.$t('AUTOMATION.ACTION.DELETE_MESSAGE'));
+        useAlert(this.$t('AUTOMATION.ACTION.DELETE_MESSAGE'));
       } else {
         this.automation.actions.splice(index, 1);
       }
@@ -169,8 +171,9 @@ export default {
     showActionInput(action) {
       if (action === 'send_email_to_team' || action === 'send_message')
         return false;
-      const type = this.automationActionTypes.find(i => i.key === action)
-        .inputType;
+      const type = this.automationActionTypes.find(
+        i => i.key === action
+      ).inputType;
       return !!type;
     },
     resetAction(index) {
@@ -197,6 +200,12 @@ export default {
           return {
             ...condition,
             values: condition.values[0],
+          };
+        }
+        if (inputType === 'comma_separated_plain_text') {
+          return {
+            ...condition,
+            values: condition.values.join(','),
           };
         }
         return {
@@ -250,17 +259,25 @@ export default {
       };
     },
     getActionDropdownValues(type) {
-      const { agents, labels, teams } = this;
-      return getActionOptions({ agents, labels, teams, languages, type });
+      const { agents, labels, teams, slaPolicies } = this;
+      return getActionOptions({
+        agents,
+        labels,
+        teams,
+        slaPolicies,
+        languages,
+        type,
+      });
     },
     manifestCustomAttributes() {
       const conversationCustomAttributesRaw = this.$store.getters[
         'attributes/getAttributesByModel'
       ]('conversation_attribute');
 
-      const contactCustomAttributesRaw = this.$store.getters[
-        'attributes/getAttributesByModel'
-      ]('contact_attribute');
+      const contactCustomAttributesRaw =
+        this.$store.getters['attributes/getAttributesByModel'](
+          'contact_attribute'
+        );
       const conversationCustomAttributeTypes = generateCustomAttributeTypes(
         conversationCustomAttributesRaw,
         'conversation_attribute'

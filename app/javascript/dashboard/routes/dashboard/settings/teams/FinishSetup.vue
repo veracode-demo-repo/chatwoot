@@ -1,13 +1,15 @@
 <template>
-  <div class="wizard-body columns content-box small-9">
+  <div
+    class="border border-slate-25 dark:border-slate-800/60 bg-white dark:bg-slate-900 h-full p-6 w-full max-w-full md:w-3/4 md:max-w-[75%] flex-shrink-0 flex-grow-0"
+  >
     <empty-state
       :title="$t('TEAMS_SETTINGS.FINISH.TITLE')"
       :message="$t('TEAMS_SETTINGS.FINISH.MESSAGE')"
       :button-text="$t('TEAMS_SETTINGS.FINISH.BUTTON_TEXT')"
     >
-      <div class="medium-12 columns text-center">
+      <div class="w-full text-center">
         <router-link
-          class="button success nice"
+          class="button success nice rounded"
           :to="{
             name: 'settings_teams_list',
           }"
@@ -20,7 +22,7 @@
 </template>
 
 <script>
-import EmptyState from '../../../../components/widgets/EmptyState';
+import EmptyState from '../../../../components/widgets/EmptyState.vue';
 
 export default {
   components: {
@@ -28,11 +30,3 @@ export default {
   },
 };
 </script>
-<style lang="scss" scoped>
-@import '~dashboard/assets/scss/variables';
-
-.website--code {
-  margin: $space-normal auto;
-  max-width: 70%;
-}
-</style>

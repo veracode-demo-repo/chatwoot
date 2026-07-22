@@ -1,21 +1,18 @@
 <template>
-  <div class="column content-box">
+  <div class="flex-1 overflow-auto">
     <router-link
       :to="addAccountScoping('settings/macros/new')"
-      class="button success button--fixed-top"
+      class="button success button--fixed-top button success button--fixed-top px-3.5 py-1 rounded-[5px] flex gap-2"
     >
       <fluent-icon icon="add-circle" />
       <span class="button__content">
         {{ $t('MACROS.HEADER_BTN_TXT') }}
       </span>
     </router-link>
-    <div class="row">
-      <div class="small-8 columns with-right-space">
-        <div
-          v-if="!uiFlags.isFetching && !records.length"
-          class="macros__empty-state"
-        >
-          <p class="no-items-error-message">
+    <div class="flex flex-row gap-4 p-8">
+      <div class="w-full lg:w-3/5">
+        <div v-if="!uiFlags.isFetching && !records.length" class="p-3">
+          <p class="flex h-full items-center flex-col justify-center">
             {{ $t('MACROS.LIST.404') }}
           </p>
         </div>
@@ -42,7 +39,7 @@
           </tbody>
         </table>
       </div>
-      <div class="small-4 columns">
+      <div class="hidden lg:block w-1/3">
         <span v-dompurify-html="$t('MACROS.SIDEBAR_TXT')" />
       </div>
     </div>
@@ -61,14 +58,14 @@
 
 <script>
 import { mapGetters } from 'vuex';
-import alertMixin from 'shared/mixins/alertMixin';
+import { useAlert } from 'dashboard/composables';
 import accountMixin from 'dashboard/mixins/account.js';
-import MacrosTableRow from './MacrosTableRow';
+import MacrosTableRow from './MacrosTableRow.vue';
 export default {
   components: {
     MacrosTableRow,
   },
-  mixins: [alertMixin, accountMixin],
+  mixins: [accountMixin],
   data() {
     return {
       showDeleteConfirmationPopup: false,
@@ -104,18 +101,12 @@ export default {
     async deleteMacro(id) {
       try {
         await this.$store.dispatch('macros/delete', id);
-        this.showAlert(this.$t('MACROS.DELETE.API.SUCCESS_MESSAGE'));
+        useAlert(this.$t('MACROS.DELETE.API.SUCCESS_MESSAGE'));
         this.loading[this.selectedResponse.id] = false;
       } catch (error) {
-        this.showAlert(this.$t('MACROS.DELETE.API.ERROR_MESSAGE'));
+        useAlert(this.$t('MACROS.DELETE.API.ERROR_MESSAGE'));
       }
     },
   },
 };
 </script>
-
-<style scoped>
-.macros__empty-state {
-  padding: var(--space-slab);
-}
-</style>

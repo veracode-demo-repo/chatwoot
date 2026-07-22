@@ -1,5 +1,5 @@
 <template>
-  <div class="menu-container">
+  <div class="bg-white dark:bg-slate-700 shadow-xl rounded-md p-1">
     <menu-item
       v-if="!hasUnreadMessages"
       :option="unreadOption"
@@ -16,7 +16,7 @@
       />
     </template>
     <menu-item
-      v-if="show(snoozeOption.key)"
+      v-if="showSnooze"
       :option="snoozeOption"
       variant="icon"
       @click="snoozeConversation()"
@@ -34,15 +34,13 @@
       :option="labelMenuConfig"
       :sub-menu-available="!!labels.length"
     >
-      <template>
-        <menu-item
-          v-for="label in labels"
-          :key="label.id"
-          :option="generateMenuLabelConfig(label, 'label')"
-          variant="label"
-          @click="$emit('assign-label', label)"
-        />
-      </template>
+      <menu-item
+        v-for="label in labels"
+        :key="label.id"
+        :option="generateMenuLabelConfig(label, 'label')"
+        variant="label"
+        @click="$emit('assign-label', label)"
+      />
     </menu-item-with-submenu>
     <menu-item-with-submenu
       :option="agentMenuConfig"
@@ -88,6 +86,10 @@ export default {
   },
   mixins: [agentMixin],
   props: {
+    chatId: {
+      type: Number,
+      default: null,
+    },
     status: {
       type: String,
       default: '',
@@ -207,6 +209,10 @@ export default {
         ...this.filteredAgentOnAvailability,
       ];
     },
+    showSnooze() {
+      // Don't show snooze if the conversation is already snoozed/resolved/pending
+      return this.status === wootConstants.STATUS_TYPE.OPEN;
+    },
   },
   mounted() {
     this.$store.dispatch('inboxAssignableAgents/fetch', [this.inboxId]);
@@ -215,7 +221,8 @@ export default {
     toggleStatus(status, snoozedUntil) {
       this.$emit('update-conversation', status, snoozedUntil);
     },
-    snoozeConversation() {
+    async snoozeConversation() {
+      await this.$store.dispatch('setContextMenuChatId', this.chatId);
       const ninja = document.querySelector('ninja-keys');
       ninja.open({ parent: 'snooze_conversation' });
     },
@@ -243,12 +250,3 @@ export default {
   },
 };
 </script>
-
-<style lang="scss" scoped>
-.menu-container {
-  padding: var(--space-smaller);
-  background-color: var(--white);
-  box-shadow: var(--shadow-context-menu);
-  border-radius: var(--border-radius-normal);
-}
-</style>

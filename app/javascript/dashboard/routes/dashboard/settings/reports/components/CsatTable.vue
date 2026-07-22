@@ -1,8 +1,9 @@
 <template>
   <div class="csat--table-container">
     <ve-table
-      max-height="calc(100vh - 35rem)"
+      max-height="calc(100vh - 21.875rem)"
       :fixed-header="true"
+      :border-around="true"
       :columns="columns"
       :table-data="tableData"
     />
@@ -22,10 +23,10 @@
 </template>
 <script>
 import { VeTable, VePagination } from 'vue-easytable';
-import UserAvatarWithName from 'dashboard/components/widgets/UserAvatarWithName';
+import UserAvatarWithName from 'dashboard/components/widgets/UserAvatarWithName.vue';
 import { CSAT_RATINGS } from 'shared/constants/messages';
 import { mapGetters } from 'vuex';
-import timeMixin from 'dashboard/mixins/time';
+import { messageStamp, dynamicTime } from 'shared/helpers/timeHelper';
 import rtlMixin from 'shared/mixins/rtlMixin';
 
 export default {
@@ -33,7 +34,7 @@ export default {
     VeTable,
     VePagination,
   },
-  mixins: [timeMixin, rtlMixin],
+  mixins: [rtlMixin],
   props: {
     pageIndex: {
       type: Number,
@@ -56,7 +57,13 @@ export default {
           width: 200,
           renderBodyCell: ({ row }) => {
             if (row.contact) {
-              return <UserAvatarWithName size="24px" user={row.contact} />;
+              return (
+                <UserAvatarWithName
+                  textClass="text-sm text-slate-800"
+                  size="24px"
+                  user={row.contact}
+                />
+              );
             }
             return '---';
           },
@@ -130,8 +137,8 @@ export default {
         rating: response.rating,
         feedbackText: response.feedback_message || '---',
         conversationId: response.conversation_id,
-        createdAgo: this.dynamicTime(response.created_at),
-        createdAt: this.messageStamp(response.created_at, 'LLL d yyyy, h:mm a'),
+        createdAgo: dynamicTime(response.created_at),
+        createdAt: messageStamp(response.created_at, 'LLL d yyyy, h:mm a'),
       }));
     },
   },
@@ -149,12 +156,11 @@ export default {
   flex: 1;
 
   .ve-table {
-    background: var(--white);
+    @apply bg-white dark:bg-slate-900;
 
     &::v-deep {
       .ve-table-container {
         border-radius: var(--border-radius-normal);
-        border: 1px solid var(--color-border) !important;
       }
 
       th.ve-table-header-th {
@@ -188,20 +194,18 @@ export default {
 
 .csat--empty-records {
   align-items: center;
-  background-color: var(--white);
-  border: 1px solid var(--color-border);
+  // border: 1px solid var(--color-border);
   border-top: 0;
-  color: var(--b-600);
   display: flex;
   font-size: var(--font-size-small);
-  height: 20rem;
+  height: 12.5rem;
   justify-content: center;
   margin-top: -1px;
   width: 100%;
+  @apply text-slate-600 dark:text-slate-200 bg-white dark:bg-slate-900 border border-t-0 border-solid border-slate-75 dark:border-slate-700;
 }
 
 .csat--timestamp {
-  color: var(--b-400);
-  font-size: var(--font-size-small);
+  @apply text-slate-600 dark:text-slate-200 text-sm;
 }
 </style>

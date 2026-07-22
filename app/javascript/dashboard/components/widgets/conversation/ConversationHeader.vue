@@ -1,39 +1,62 @@
 <template>
-  <div class="conv-header">
-    <div class="conversation-header--details">
-      <div class="user">
-        <back-button v-if="showBackButton" :back-url="backButtonUrl" />
+  <div
+    class="flex flex-col items-center justify-between px-4 py-2 bg-white border-b dark:bg-slate-900 border-slate-50 dark:border-slate-800/50 md:flex-row"
+  >
+    <div
+      class="flex flex-col items-center justify-center flex-1 w-full min-w-0"
+      :class="isInboxView ? 'sm:flex-row' : 'md:flex-row'"
+    >
+      <div class="flex items-center justify-start max-w-full min-w-0 w-fit">
+        <back-button
+          v-if="showBackButton"
+          :back-url="backButtonUrl"
+          class="ltr:ml-0 rtl:mr-0 rtl:ml-4"
+        />
         <Thumbnail
           :src="currentContact.thumbnail"
           :badge="inboxBadge"
           :username="currentContact.name"
           :status="currentContact.availability_status"
         />
-        <div class="user--profile__meta">
-          <woot-button
-            variant="link"
-            color-scheme="secondary"
-            class="text-truncate"
-            @click.prevent="$emit('contact-panel-toggle')"
+        <div
+          class="flex flex-col items-start min-w-0 ml-2 overflow-hidden rtl:ml-0 rtl:mr-2 w-fit"
+        >
+          <div
+            class="flex flex-row items-center max-w-full gap-1 p-0 m-0 w-fit"
           >
-            <h3 class="sub-block-title user--name text-truncate">
-              <span>{{ currentContact.name }}</span>
-              <fluent-icon
-                v-if="!isHMACVerified"
-                v-tooltip="$t('CONVERSATION.UNVERIFIED_SESSION')"
-                size="14"
-                class="hmac-warning__icon"
-                icon="warning"
-              />
-            </h3>
-          </woot-button>
-          <div class="conversation--header--actions text-truncate">
+            <woot-button
+              variant="link"
+              color-scheme="secondary"
+              class="[&>span]:overflow-hidden [&>span]:whitespace-nowrap [&>span]:text-ellipsis min-w-0"
+              @click.prevent="$emit('contact-panel-toggle')"
+            >
+              <span
+                class="text-base font-medium leading-tight text-slate-900 dark:text-slate-100"
+              >
+                {{ currentContact.name }}
+              </span>
+            </woot-button>
+            <fluent-icon
+              v-if="!isHMACVerified"
+              v-tooltip="$t('CONVERSATION.UNVERIFIED_SESSION')"
+              size="14"
+              class="text-yellow-600 dark:text-yellow-500 my-0 mx-0 min-w-[14px]"
+              icon="warning"
+            />
+          </div>
+
+          <div
+            class="flex items-center gap-2 overflow-hidden text-xs conversation--header--actions text-ellipsis whitespace-nowrap"
+          >
             <inbox-name v-if="hasMultipleInboxes" :inbox="inbox" />
-            <span v-if="isSnoozed" class="snoozed--display-text">
+            <span
+              v-if="isSnoozed"
+              class="font-medium text-yellow-600 dark:text-yellow-500"
+            >
               {{ snoozedDisplayText }}
             </span>
             <woot-button
-              class="user--profile__button"
+              class="p-0"
               size="small"
               variant="link"
               @click="$emit('contact-panel-toggle')"
@@ -44,27 +67,34 @@
         </div>
       </div>
       <div
-        class="header-actions-wrap"
-        :class="{ 'has-open-sidebar': isContactPanelOpen }"
+        class="flex flex-row items-center justify-end flex-grow gap-2 mt-3 header-actions-wrap lg:mt-0"
+        :class="{ 'justify-end': isContactPanelOpen }"
       >
+        <SLA-card-label v-if="hasSlaPolicyId" :chat="chat" show-extended-info />
+        <linear
+          v-if="isLinearIntegrationEnabled && isLinearFeatureEnabled"
+          :conversation-id="currentChat.id"
+        />
         <more-actions :conversation-id="currentChat.id" />
       </div>
     </div>
   </div>
 </template>
 <script>
-import { hasPressedAltAndOKey } from 'shared/helpers/KeyboardHelpers';
 import { mapGetters } from 'vuex';
 import agentMixin from '../../../mixins/agentMixin.js';
-import BackButton from '../BackButton';
-import eventListenerMixins from 'shared/mixins/eventListenerMixins';
+import BackButton from '../BackButton.vue';
+import keyboardEventListenerMixins from 'shared/mixins/keyboardEventListenerMixins';
 import inboxMixin from 'shared/mixins/inboxMixin';
-import InboxName from '../InboxName';
-import MoreActions from './MoreActions';
-import Thumbnail from '../Thumbnail';
+import InboxName from '../InboxName.vue';
+import MoreActions from './MoreActions.vue';
+import Thumbnail from '../Thumbnail.vue';
+import SLACardLabel from './components/SLACardLabel.vue';
 import wootConstants from 'dashboard/constants/globals';
 import { conversationListPageURL } from 'dashboard/helper/URLHelper';
-import { conversationReopenTime } from 'dashboard/helper/snoozeHelpers';
+import { snoozedReopenTime } from 'dashboard/helper/snoozeHelpers';
+import { FEATURE_FLAGS } from 'dashboard/featureFlags';
+import Linear from './linear/index.vue';
 
 export default {
   components: {
@@ -72,8 +102,10 @@ export default {
     InboxName,
     MoreActions,
     Thumbnail,
+    SLACardLabel,
+    Linear,
   },
-  mixins: [inboxMixin, agentMixin, eventListenerMixins],
+  mixins: [inboxMixin, agentMixin, keyboardEventListenerMixins],
   props: {
     chat: {
       type: Object,
@@ -87,11 +119,18 @@ export default {
       type: Boolean,
       default: false,
     },
+    isInboxView: {
+      type: Boolean,
+      default: false,
+    },
   },
   computed: {
     ...mapGetters({
       uiFlags: 'inboxAssignableAgents/getUIFlags',
       currentChat: 'getSelectedChat',
+      accountId: 'getCurrentAccountId',
+      isFeatureEnabledonAccount: 'accounts/isFeatureEnabledonAccount',
+      appIntegrations: 'integrations/getAppIntegrations',
     }),
     chatMetadata() {
       return this.chat.meta;
@@ -128,7 +167,7 @@ export default {
       if (snoozedUntil) {
         return `${this.$t(
           'CONVERSATION.HEADER.SNOOZED_UNTIL'
-        )} ${conversationReopenTime(snoozedUntil)}`;
+        )} ${snoozedReopenTime(snoozedUntil)}`;
       }
       return this.$t('CONVERSATION.HEADER.SNOOZED_UNTIL_NEXT_REPLY');
     },
@@ -146,85 +185,38 @@ export default {
     hasMultipleInboxes() {
       return this.$store.getters['inboxes/getInboxes'].length > 1;
     },
+    hasSlaPolicyId() {
+      return this.chat?.sla_policy_id;
+    },
+    isLinearIntegrationEnabled() {
+      return this.appIntegrations.find(
+        integration => integration.id === 'linear' && !!integration.hooks.length
+      );
+    },
+    isLinearFeatureEnabled() {
+      return this.isFeatureEnabledonAccount(
+        this.accountId,
+        FEATURE_FLAGS.LINEAR
+      );
+    },
   },
 
   methods: {
-    handleKeyEvents(e) {
-      if (hasPressedAltAndOKey(e)) {
-        this.$emit('contact-panel-toggle');
-      }
+    getKeyboardEvents() {
+      return {
+        'Alt+KeyO': {
+          action: () => this.$emit('contact-panel-toggle'),
+        },
+      };
     },
   },
 };
 </script>
 
 <style lang="scss" scoped>
-@import '~dashboard/assets/scss/woot';
-
-.conv-header {
-  flex: 0 0 var(--space-jumbo);
-  flex-direction: row;
-
-  @include breakpoint(medium up) {
-    flex-direction: column;
-  }
-}
-
-.conversation-header--details {
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-
-  @include breakpoint(medium up) {
-    flex-direction: row;
-  }
-}
-
-.option__desc {
-  display: flex;
-  align-items: center;
-}
-
-.option__desc {
-  &::v-deep .status-badge {
-    margin-right: var(--space-small);
-    min-width: 0;
-    flex-shrink: 0;
-  }
-}
-
-.user--name {
-  display: inline-block;
-  line-height: 1.2;
-  text-transform: capitalize;
-  margin: 0;
-  padding: 0;
-}
-
 .conversation--header--actions {
-  align-items: center;
-  display: flex;
-  font-size: var(--font-size-mini);
-  gap: var(--space-small);
-
   ::v-deep .inbox--name {
-    margin: 0;
+    @apply m-0;
   }
-
-  .user--profile__button {
-    padding: 0;
-  }
-
-  .snoozed--display-text {
-    font-weight: var(--font-weight-medium);
-    color: var(--y-600);
-  }
-}
-
-.hmac-warning__icon {
-  color: var(--y-600);
-  margin: 0 var(--space-micro);
 }
 </style>

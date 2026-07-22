@@ -1,5 +1,7 @@
 <template>
-  <div class="medium-3 bg-white contact--panel">
+  <div
+    class="overflow-y-auto bg-white border-l dark:bg-slate-900 text-slate-900 dark:text-slate-300 border-slate-50 dark:border-slate-800/50 rtl:border-l-0 rtl:border-r contact--panel"
+  >
     <contact-info
       :contact="contact"
       :channel-type="channelType"
@@ -19,7 +21,7 @@
         <div
           v-for="element in conversationSidebarItems"
           :key="element.name"
-          class="list-group-item"
+          class="bg-white dark:bg-gray-800"
         >
           <div
             v-if="element.name === 'conversation_actions'"
@@ -85,11 +87,11 @@
                 attribute-type="contact_attribute"
                 attribute-class="conversation--attribute"
                 class="even"
+                attribute-from="conversation_contact_panel"
                 :contact-id="contact.id"
-              />
-              <custom-attribute-selector
-                attribute-type="contact_attribute"
-                :contact-id="contact.id"
+                :empty-state-message="
+                  $t('CONVERSATION_CUSTOM_ATTRIBUTES.NO_RECORDS_FOUND')
+                "
               />
             </accordion-item>
           </div>
@@ -131,20 +133,17 @@
 
 <script>
 import { mapGetters } from 'vuex';
-import alertMixin from 'shared/mixins/alertMixin';
-import AccordionItem from 'dashboard/components/Accordion/AccordionItem';
+import { useUISettings } from 'dashboard/composables/useUISettings';
+import AccordionItem from 'dashboard/components/Accordion/AccordionItem.vue';
 import ContactConversations from './ContactConversations.vue';
 import ConversationAction from './ConversationAction.vue';
 import ConversationParticipant from './ConversationParticipant.vue';
 
-import ContactInfo from './contact/ContactInfo';
-import ConversationInfo from './ConversationInfo';
+import ContactInfo from './contact/ContactInfo.vue';
+import ConversationInfo from './ConversationInfo.vue';
 import CustomAttributes from './customAttributes/CustomAttributes.vue';
-import CustomAttributeSelector from './customAttributes/CustomAttributeSelector.vue';
 import draggable from 'vuedraggable';
-import uiSettingsMixin from 'dashboard/mixins/uiSettings';
-import MacrosList from './Macros/List';
-
+import MacrosList from './Macros/List.vue';
 export default {
   components: {
     AccordionItem,
@@ -152,13 +151,11 @@ export default {
     ContactInfo,
     ConversationInfo,
     CustomAttributes,
-    CustomAttributeSelector,
     ConversationAction,
     ConversationParticipant,
     draggable,
     MacrosList,
   },
-  mixins: [alertMixin, uiSettingsMixin],
   props: {
     conversationId: {
       type: [Number, String],
@@ -172,6 +169,21 @@ export default {
       type: Function,
       default: () => {},
     },
+  },
+  setup() {
+    const {
+      updateUISettings,
+      isContactSidebarItemOpen,
+      conversationSidebarItemsOrder,
+      toggleSidebarUIState,
+    } = useUISettings();
+
+    return {
+      updateUISettings,
+      isContactSidebarItemOpen,
+      conversationSidebarItemsOrder,
+      toggleSidebarUIState,
+    };
   },
   data() {
     return {
@@ -255,73 +267,19 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import '~dashboard/assets/scss/variables';
-
-.contact--panel {
-  background: white;
-  border-left: 1px solid var(--color-border);
-  font-size: $font-size-small;
-  overflow-y: auto;
-  overflow: auto;
-  position: relative;
-
-  i {
-    margin-right: $space-smaller;
-  }
-}
-
-.list-group {
-  .list-group-item {
-    background-color: var(--white);
-  }
-}
-
 ::v-deep {
   .contact--profile {
-    padding-bottom: var(--space-slab);
-    border-bottom: 1px solid var(--color-border);
+    @apply pb-3 border-b border-solid border-slate-75 dark:border-slate-700;
   }
   .conversation--actions .multiselect-wrap--small {
     .multiselect {
-      padding-left: var(--space-medium);
-      box-sizing: border-box;
+      @apply box-border pl-6;
     }
     .multiselect__element {
       span {
-        width: 100%;
+        @apply w-full;
       }
     }
   }
-}
-
-.conversation--labels {
-  padding: $space-medium;
-
-  .icon {
-    margin-right: $space-micro;
-    font-size: $font-size-micro;
-    color: #fff;
-  }
-
-  .label {
-    color: #fff;
-    padding: 0.2rem;
-  }
-}
-
-.contact--mute {
-  color: $alert-color;
-  display: block;
-  text-align: left;
-}
-
-.contact--actions {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.contact-info {
-  margin-top: var(--space-two);
 }
 </style>

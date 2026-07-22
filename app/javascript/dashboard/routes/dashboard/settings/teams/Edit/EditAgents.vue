@@ -1,14 +1,19 @@
 <template>
-  <div class="wizard-body columns content-box small-9">
-    <form class="row" @submit.prevent="addAgents">
-      <div class="medium-12 columns">
+  <div
+    class="border border-slate-25 overflow-x-auto dark:border-slate-800/60 bg-white dark:bg-slate-900 h-full p-6 w-full max-w-full md:w-3/4 md:max-w-[75%] flex-shrink-0 flex-grow-0"
+  >
+    <form
+      class="flex flex-wrap mx-0 overflow-x-auto"
+      @submit.prevent="addAgents"
+    >
+      <div class="w-full">
         <page-header
           :header-title="headerTitle"
           :header-content="$t('TEAMS_SETTINGS.EDIT_FLOW.AGENTS.DESC')"
         />
       </div>
 
-      <div class="medium-12 columns">
+      <div class="w-full">
         <div v-if="$v.selectedAgents.$error">
           <p class="error-message">
             {{ $t('TEAMS_SETTINGS.ADD.AGENT_VALIDATION_ERROR') }}
@@ -32,12 +37,12 @@
 
 <script>
 import { mapGetters } from 'vuex';
-import Spinner from 'shared/components/Spinner';
-import alertMixin from 'shared/mixins/alertMixin';
+import { useAlert } from 'dashboard/composables';
 
+import Spinner from 'shared/components/Spinner.vue';
 import router from '../../../../index';
-import PageHeader from '../../SettingsSubPageHeader';
-import AgentSelector from '../AgentSelector';
+import PageHeader from '../../SettingsSubPageHeader.vue';
+import AgentSelector from '../AgentSelector.vue';
 
 export default {
   components: {
@@ -45,7 +50,6 @@ export default {
     PageHeader,
     AgentSelector,
   },
-  mixins: [alertMixin],
 
   props: {
     team: {
@@ -131,7 +135,7 @@ export default {
         });
         this.$store.dispatch('teams/get');
       } catch (error) {
-        this.showAlert(error.message);
+        useAlert(error.message);
       }
       this.isCreating = false;
     },

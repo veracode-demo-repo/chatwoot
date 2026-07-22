@@ -3,6 +3,7 @@
     "TITLE": "Kontoinnstillinger",
     "SUBMIT": "Oppdater innstillinger",
     "BACK": "Tilbake",
+    "DISMISS": "Dismiss",
     "UPDATE": {
       "ERROR": "Kunne ikke oppdatere innstillinger, prøv igjen!",
       "SUCCESS": "Innstillinger ble oppdatert"
@@ -86,12 +87,17 @@
       "conversation_assignment": "Samtale tildelt",
       "assigned_conversation_new_message": "Ny melding",
       "participating_conversation_new_message": "Ny melding",
-      "conversation_mention": "Omtale"
+      "conversation_mention": "Omtale",
+      "sla_missed_first_response": "SLA Missed",
+      "sla_missed_next_response": "SLA Missed",
+      "sla_missed_resolution": "SLA Missed"
     }
   },
   "NETWORK": {
     "NOTIFICATION": {
-      "TEXT": "Disconnected from Chatwoot"
+      "OFFLINE": "Frakoblet",
+      "RECONNECTING": "Reconnecting...",
+      "RECONNECT_SUCCESS": "Reconnected"
     },
     "BUTTON": {
       "REFRESH": "Refresh"
@@ -103,13 +109,17 @@
       "GENERAL": "General",
       "REPORTS": "Rapporter",
       "CONVERSATION": "Conversation",
+      "BULK_ACTIONS": "Bulk Actions",
       "CHANGE_ASSIGNEE": "Change Assignee",
       "CHANGE_PRIORITY": "Change Priority",
       "CHANGE_TEAM": "Change Team",
       "SNOOZE_CONVERSATION": "Snooze Conversation",
       "ADD_LABEL": "Add label to the conversation",
       "REMOVE_LABEL": "Remove label from the conversation",
-      "SETTINGS": "Innstillinger"
+      "SETTINGS": "Innstillinger",
+      "AI_ASSIST": "AI Assist",
+      "APPEARANCE": "Appearance",
+      "SNOOZE_NOTIFICATION": "Snooze Notification"
     },
     "COMMANDS": {
       "GO_TO_CONVERSATION_DASHBOARD": "Go to Conversation Dashboard",
@@ -131,6 +141,7 @@
       "GO_TO_NOTIFICATIONS": "Go to Notifications",
       "ADD_LABELS_TO_CONVERSATION": "Add label to the conversation",
       "ASSIGN_AN_AGENT": "Assign an agent",
+      "AI_ASSIST": "AI Assist",
       "ASSIGN_PRIORITY": "Assign priority",
       "ASSIGN_A_TEAM": "Assign a team",
       "MUTE_CONVERSATION": "Mute conversation",
@@ -145,10 +156,19 @@
       "UNTIL_TOMORROW": "Until tomorrow",
       "UNTIL_NEXT_MONTH": "Until next month",
       "AN_HOUR_FROM_NOW": "Until an hour from now",
-      "CUSTOM": "Custom..."
+      "UNTIL_CUSTOM_TIME": "Custom...",
+      "CHANGE_APPEARANCE": "Change Appearance",
+      "LIGHT_MODE": "Light",
+      "DARK_MODE": "Dark",
+      "SYSTEM_MODE": "System",
+      "SNOOZE_NOTIFICATION": "Snooze Notification"
     }
   },
   "DASHBOARD_APPS": {
     "LOADING_MESSAGE": "Loading Dashboard App..."
+  },
+  "COMMON": {
+    "OR": "Or",
+    "CLICK_HERE": "klikk her"
   }
 }

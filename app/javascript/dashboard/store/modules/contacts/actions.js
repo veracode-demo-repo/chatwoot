@@ -16,10 +16,8 @@ const buildContactFormData = contactParams => {
       formData.append(key, contactProperties[key]);
     }
   });
-  const {
-    social_profiles,
-    ...additionalAttributesProperties
-  } = additional_attributes;
+  const { social_profiles, ...additionalAttributesProperties } =
+    additional_attributes;
   Object.keys(additionalAttributesProperties).forEach(key => {
     formData.append(
       `additional_attributes[${key}]`,
@@ -140,9 +138,10 @@ export const actions = {
     }
   },
 
-  export: async ({ commit }) => {
+  export: async ({ commit }, { payload, label }) => {
     try {
-      await ContactAPI.exportContacts();
+      await ContactAPI.exportContacts({ payload, label });
+
       commit(types.SET_CONTACT_UI_FLAG, { isCreating: false });
     } catch (error) {
       commit(types.SET_CONTACT_UI_FLAG, { isCreating: false });

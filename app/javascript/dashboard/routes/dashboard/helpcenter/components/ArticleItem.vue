@@ -1,66 +1,102 @@
 <template>
-  <div class="article-container--row">
-    <span class="article-column article-title">
-      <emoji-or-icon class="icon-grab" icon="grab-handle" />
-      <div class="article-block">
+  <div
+    class="grid grid-cols-1 gap-4 px-6 py-3 my-0 -mx-4 bg-white border-b text-slate-700 dark:text-slate-100 last:border-b-0 dark:bg-slate-900 lg:grid-cols-12 border-slate-50 dark:border-slate-800"
+  >
+    <span class="flex items-start col-span-6 gap-2 text-left">
+      <fluent-icon
+        v-if="showDragIcon"
+        size="20"
+        class="flex-shrink-0 block w-4 h-4 mt-1 cursor-move text-slate-200 dark:text-slate-700 hover:text-slate-400 hover:dark:text-slate-200"
+        icon="grab-handle"
+      />
+      <div class="flex flex-col truncate">
         <router-link :to="articleUrl(id)">
-          <h6 :title="title" class="sub-block-title text-truncate">
+          <h6
+            :title="title"
+            class="text-base ltr:text-left rtl:text-right text-slate-800 dark:text-slate-100 mb-0.5 leading-6 font-medium hover:underline overflow-hidden whitespace-nowrap text-ellipsis"
+          >
             {{ title }}
           </h6>
         </router-link>
-        <div class="author">
-          <span class="by">{{ $t('HELP_CENTER.TABLE.COLUMNS.BY') }}</span>
-          <span class="name">{{ articleAuthorName }}</span>
+        <div class="flex items-center gap-1">
+          <Thumbnail
+            v-if="author"
+            :src="author.thumbnail"
+            :username="author.name"
+            size="14px"
+          />
+          <div
+            v-else
+            v-tooltip.right="
+              $t('HELP_CENTER.TABLE.COLUMNS.AUTHOR_NOT_AVAILABLE')
+            "
+            class="flex items-center justify-center rounded w-3.5 h-3.5 bg-woot-100 dark:bg-woot-700"
+          >
+            <fluent-icon
+              icon="person"
+              type="filled"
+              size="10"
+              class="text-woot-300 dark:text-woot-300"
+            />
+          </div>
+          <span class="text-sm font-normal text-slate-700 dark:text-slate-200">
+            {{ articleAuthorName }}
+          </span>
         </div>
       </div>
     </span>
-    <span class="article-column article-category">
+    <span class="flex items-center col-span-2">
       <router-link
-        class="fs-small button clear link secondary"
+        class="text-sm hover:underline p-0.5 truncate hover:bg-slate-25 hover:rounded-md"
         :to="getCategoryRoute(category.slug)"
       >
-        <span
-          :title="category.name"
-          class="category-link-content text-ellipsis"
-        >
+        <span :title="category.name">
           {{ category.name }}
         </span>
       </router-link>
     </span>
-    <span class="article-column article-read-count">
-      <span class="fs-small" :title="formattedViewCount">
-        {{ readableViewCount }}
+    <span
+      class="flex items-center text-xs lg:text-sm"
+      :title="formattedViewCount"
+    >
+      {{ readableViewCount }}
+      <span class="ml-1 lg:hidden">
+        {{ ` ${$t('HELP_CENTER.TABLE.HEADERS.READ_COUNT')}` }}
       </span>
     </span>
-    <span class="article-column article-status">
-      <div>
-        <woot-label
-          :title="status"
-          size="small"
-          variant="smooth"
-          :color-scheme="labelColor"
-        />
-      </div>
+    <span class="flex items-center capitalize">
+      <woot-label
+        class="!mb-0"
+        :title="status"
+        size="small"
+        variant="smooth"
+        :color-scheme="labelColor"
+      />
     </span>
-    <span class="article-column article-last-edited">
-      <span class="fs-small">
-        {{ lastUpdatedAt }}
-      </span>
+    <span
+      class="flex items-center justify-end col-span-2 text-xs first-letter:uppercase text-slate-700 dark:text-slate-100"
+    >
+      {{ lastUpdatedAt }}
     </span>
   </div>
 </template>
+
 <script>
-import timeMixin from 'dashboard/mixins/time';
+import { dynamicTime } from 'shared/helpers/timeHelper';
 import portalMixin from '../mixins/portalMixin';
 import { frontendURL } from 'dashboard/helper/URLHelper';
-import EmojiOrIcon from '../../../../../shared/components/EmojiOrIcon.vue';
+import Thumbnail from 'dashboard/components/widgets/Thumbnail.vue';
 
 export default {
   components: {
-    EmojiOrIcon,
+    Thumbnail,
   },
-  mixins: [timeMixin, portalMixin],
+  mixins: [portalMixin],
   props: {
+    showDragIcon: {
+      type: Boolean,
+      default: false,
+    },
     id: {
       type: Number,
       required: true,
@@ -95,7 +131,7 @@ export default {
 
   computed: {
     lastUpdatedAt() {
-      return this.dynamicTime(this.updatedAt);
+      return dynamicTime(this.updatedAt);
     },
     formattedViewCount() {
       return Number(this.views || 0).toLocaleString('en');
@@ -107,7 +143,7 @@ export default {
       }).format(this.views || 0);
     },
     articleAuthorName() {
-      return this.author.name;
+      return this.author?.name || '-';
     },
     labelColor() {
       switch (this.status) {
@@ -130,112 +166,3 @@ export default {
   },
 };
 </script>
-
-<style lang="scss" scoped>
-.article-container--row {
-  background: var(--white);
-  border-bottom: 1px solid var(--s-50);
-  display: grid;
-  gap: var(--space-normal);
-  grid-template-columns: repeat(8, minmax(0, 1fr));
-  margin: 0 var(--space-minus-normal);
-  padding: 0 var(--space-normal);
-
-  @media (max-width: 1024px) {
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-  }
-
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-  }
-
-  &.draggable {
-    span.article-column.article-title {
-      margin-left: var(--space-minus-small);
-
-      .icon-grab {
-        display: block;
-        cursor: move;
-        height: var(--space-normal);
-        margin-top: var(--space-smaller);
-        width: var(--space-normal);
-
-        color: var(--s-100);
-
-        &:hover {
-          color: var(--s-300);
-        }
-      }
-    }
-  }
-
-  span.article-column {
-    color: var(--s-700);
-    font-size: var(--font-size-small);
-    font-weight: var(--font-weight-bold);
-    padding: var(--space-small) 0;
-    text-align: right;
-    text-transform: capitalize;
-
-    &.article-title {
-      align-items: start;
-      display: flex;
-      gap: var(--space-small);
-      grid-column: span 4 / span 4;
-      text-align: left;
-      text-align: left;
-
-      .icon-grab {
-        display: none;
-      }
-    }
-
-    // for screen sizes smaller than 1024px
-    @media (max-width: 63.9375em) {
-      &.article-read-count {
-        display: none;
-      }
-    }
-
-    @media (max-width: 47.9375em) {
-      &.article-read-count,
-      &.article-last-edited {
-        display: none;
-      }
-    }
-  }
-
-  .article-block {
-    min-width: 0;
-  }
-
-  .sub-block-title {
-    margin-bottom: 0;
-    line-height: var(--space-medium);
-    height: var(--space-medium);
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-
-  .author {
-    .by {
-      font-weight: var(--font-weight-normal);
-      color: var(--s-500);
-      font-size: var(--font-size-small);
-    }
-    .name {
-      font-weight: var(--font-weight-medium);
-      color: var(--s-600);
-      font-size: var(--font-size-small);
-    }
-  }
-}
-
-span {
-  font-weight: var(--font-weight-normal);
-  color: var(--s-700);
-  font-size: var(--font-size-mini);
-  padding-left: 0;
-}
-</style>

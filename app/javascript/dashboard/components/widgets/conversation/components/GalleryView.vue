@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/no-mutating-props -->
 <template>
   <woot-modal
     full-width
@@ -5,26 +6,84 @@
     :show-close-button="false"
     :on-close="onClose"
   >
-    <div v-on-clickaway="onClose" class="gallery-modal--wrap" @click="onClose">
-      <div class="gallery-modal--header">
-        <div class="header-info--wrap" @click.stop>
+    <div
+      v-on-clickaway="onClose"
+      class="bg-white dark:bg-slate-900 flex flex-col h-[inherit] w-[inherit] overflow-hidden"
+      @click="onClose"
+    >
+      <div
+        class="z-10 flex items-center justify-between w-full h-16 px-6 py-2 bg-white dark:bg-slate-900"
+        @click.stop
+      >
+        <div
+          v-if="senderDetails"
+          class="items-center flex justify-start min-w-[15rem]"
+        >
           <thumbnail
+            v-if="senderDetails.avatar"
             :username="senderDetails.name"
             :src="senderDetails.avatar"
           />
-          <div class="header-info">
-            <h3 class="sub-block-title sender-name">
-              <span class="text-truncate">{{ senderDetails.name }}</span>
+          <div
+            class="flex flex-col items-start justify-center ml-2 rtl:ml-0 rtl:mr-2"
+          >
+            <h3 class="text-base inline-block leading-[1.4] m-0 p-0 capitalize">
+              <span
+                class="overflow-hidden text-slate-800 dark:text-slate-100 whitespace-nowrap text-ellipsis"
+              >
+                {{ senderDetails.name }}
+              </span>
             </h3>
-            <span class="time-stamp text-truncate">{{ readableTime }}</span>
+            <span
+              class="p-0 m-0 overflow-hidden text-xs text-slate-400 dark:text-slate-200 whitespace-nowrap text-ellipsis"
+            >
+              {{ readableTime }}
+            </span>
           </div>
         </div>
-        <div class="file-name--header text-block-title">
-          <span class="text-truncate">
-            {{ fileNameFromDataUrl }}
-          </span>
+        <div
+          class="flex items-center justify-start w-auto min-w-0 p-1 text-sm font-semibold text-slate-700 dark:text-slate-100"
+        >
+          <span
+            v-dompurify-html="fileNameFromDataUrl"
+            class="overflow-hidden text-slate-700 dark:text-slate-100 whitespace-nowrap text-ellipsis"
+          />
         </div>
-        <div class="header-actions" @click.stop>
+        <div
+          class="items-center flex gap-2 justify-end min-w-[8rem] sm:min-w-[15rem]"
+        >
+          <woot-button
+            v-if="isImage"
+            size="large"
+            color-scheme="secondary"
+            variant="clear"
+            icon="zoom-in"
+            @click="onZoom(0.1)"
+          />
+          <woot-button
+            v-if="isImage"
+            size="large"
+            color-scheme="secondary"
+            variant="clear"
+            icon="zoom-out"
+            @click="onZoom(-0.1)"
+          />
+          <woot-button
+            v-if="isImage"
+            size="large"
+            color-scheme="secondary"
+            variant="clear"
+            icon="arrow-rotate-counter-clockwise"
+            @click="onRotate('counter-clockwise')"
+          />
+          <woot-button
+            v-if="isImage"
+            size="large"
+            color-scheme="secondary"
+            variant="clear"
+            icon="arrow-rotate-clockwise"
+            @click="onRotate('clockwise')"
+          />
           <woot-button
             size="large"
             color-scheme="secondary"
@@ -41,10 +100,11 @@
           />
         </div>
       </div>
-      <div class="gallery-modal--body">
-        <div class="attachment-toggle--button">
+      <div class="flex items-center justify-center w-full h-full">
+        <div class="flex justify-center min-w-[6.25rem] w-[6.25rem]">
           <woot-button
             v-if="hasMoreThanOneAttachment"
+            class="z-10"
             size="large"
             variant="smooth"
             color-scheme="primary"
@@ -58,14 +118,16 @@
             "
           />
         </div>
-        <div class="attachments-viewer">
-          <div class="attachment-view">
+        <div class="flex flex-col items-center justify-center w-full h-full">
+          <div>
             <img
               v-if="isImage"
               :key="activeAttachment.message_id"
               :src="activeAttachment.data_url"
-              class="modal-image skip-context-menu"
-              @click.stop
+              class="mx-auto my-0 duration-150 ease-in-out transform modal-image skip-context-menu"
+              :style="imageRotationStyle"
+              @click.stop="onClickZoomImage"
+              @wheel.stop="onWheelImageZoom"
             />
             <video
               v-if="isVideo"
@@ -73,7 +135,7 @@
               :src="activeAttachment.data_url"
               controls
               playsInline
-              class="modal-video skip-context-menu"
+              class="mx-auto my-0 modal-video skip-context-menu"
               @click.stop
             />
             <audio
@@ -87,9 +149,10 @@
             </audio>
           </div>
         </div>
-        <div class="attachment-toggle--button">
+        <div class="flex justify-center min-w-[6.25rem] w-[6.25rem]">
           <woot-button
             v-if="hasMoreThanOneAttachment"
+            class="z-10"
             size="large"
             variant="smooth"
             color-scheme="primary"
@@ -104,8 +167,10 @@
           />
         </div>
       </div>
-      <div class="gallery-modal--footer">
-        <div class="header-count text-block-title">
+      <div class="z-10 flex items-center justify-center w-full h-16 px-6 py-2">
+        <div
+          class="items-center rounded-sm flex font-semibold justify-center min-w-[5rem] p-1 bg-slate-25 dark:bg-slate-800 text-slate-600 dark:text-slate-200 text-sm"
+        >
           <span class="count">
             {{ `${activeImageIndex + 1} / ${allAttachments.length}` }}
           </span>
@@ -115,29 +180,27 @@
   </woot-modal>
 </template>
 <script>
-import { mixin as clickaway } from 'vue-clickaway';
 import { mapGetters } from 'vuex';
-import {
-  isEscape,
-  hasPressedArrowLeftKey,
-  hasPressedArrowRightKey,
-} from 'shared/helpers/KeyboardHelpers';
-import eventListenerMixins from 'shared/mixins/eventListenerMixins';
-import timeMixin from 'dashboard/mixins/time';
+import keyboardEventListenerMixins from 'shared/mixins/keyboardEventListenerMixins';
+import { messageTimestamp } from 'shared/helpers/timeHelper';
 
-import Thumbnail from 'dashboard/components/widgets/Thumbnail';
+import Thumbnail from 'dashboard/components/widgets/Thumbnail.vue';
 
 const ALLOWED_FILE_TYPES = {
   IMAGE: 'image',
   VIDEO: 'video',
+  IG_REEL: 'ig_reel',
   AUDIO: 'audio',
 };
+
+const MAX_ZOOM_LEVEL = 2;
+const MIN_ZOOM_LEVEL = 1;
 
 export default {
   components: {
     Thumbnail,
   },
-  mixins: [eventListenerMixins, clickaway, timeMixin],
+  mixins: [keyboardEventListenerMixins],
   props: {
     show: {
       type: Boolean,
@@ -154,12 +217,14 @@ export default {
   },
   data() {
     return {
+      zoomScale: 1,
       activeAttachment: {},
       activeFileType: '',
       activeImageIndex:
         this.allAttachments.findIndex(
           attachment => attachment.message_id === this.attachment.message_id
         ) || 0,
+      activeImageRotation: 0,
     };
   },
   computed: {
@@ -170,25 +235,30 @@ export default {
       return this.allAttachments.length > 1;
     },
     readableTime() {
-      if (!this.activeAttachment.created_at) return '';
-      const time = this.messageTimestamp(
-        this.activeAttachment.created_at,
-        'LLL d yyyy, h:mm a'
-      );
-      return time || '';
+      const { created_at: createdAt } = this.activeAttachment;
+      if (!createdAt) return '';
+      return messageTimestamp(createdAt, 'LLL d yyyy, h:mm a') || '';
     },
     isImage() {
       return this.activeFileType === ALLOWED_FILE_TYPES.IMAGE;
     },
     isVideo() {
-      return this.activeFileType === ALLOWED_FILE_TYPES.VIDEO;
+      return (
+        this.activeFileType === ALLOWED_FILE_TYPES.VIDEO ||
+        this.activeFileType === ALLOWED_FILE_TYPES.IG_REEL
+      );
     },
     isAudio() {
       return this.activeFileType === ALLOWED_FILE_TYPES.AUDIO;
     },
     senderDetails() {
-      const { name, available_name: availableName, avatar_url, thumbnail, id } =
-        this.activeAttachment?.sender || this.attachment?.sender;
+      const {
+        name,
+        available_name: availableName,
+        avatar_url,
+        thumbnail,
+        id,
+      } = this.activeAttachment?.sender || this.attachment?.sender || {};
       const currentUserID = this.currentUser?.id;
       return {
         name: currentUserID === id ? 'You' : name || availableName || '',
@@ -199,7 +269,13 @@ export default {
       const { data_url: dataUrl } = this.activeAttachment;
       if (!dataUrl) return '';
       const fileName = dataUrl?.split('/').pop();
-      return fileName || '';
+      return decodeURIComponent(fileName || '');
+    },
+    imageRotationStyle() {
+      return {
+        transform: `rotate(${this.activeImageRotation}deg) scale(${this.zoomScale})`,
+        cursor: this.zoomScale < MAX_ZOOM_LEVEL ? 'zoom-in' : 'zoom-out',
+      };
     },
   },
   mounted() {
@@ -215,6 +291,8 @@ export default {
       }
       this.activeImageIndex = index;
       this.setImageAndVideoSrc(attachment);
+      this.activeImageRotation = 0;
+      this.zoomScale = 1;
     },
     setImageAndVideoSrc(attachment) {
       const { file_type: type } = attachment;
@@ -224,20 +302,30 @@ export default {
       this.activeAttachment = attachment;
       this.activeFileType = type;
     },
-    onKeyDownHandler(e) {
-      if (isEscape(e)) {
-        this.onClose();
-      } else if (hasPressedArrowLeftKey(e)) {
-        this.onClickChangeAttachment(
-          this.allAttachments[this.activeImageIndex - 1],
-          this.activeImageIndex - 1
-        );
-      } else if (hasPressedArrowRightKey(e)) {
-        this.onClickChangeAttachment(
-          this.allAttachments[this.activeImageIndex + 1],
-          this.activeImageIndex + 1
-        );
-      }
+    getKeyboardEvents() {
+      return {
+        Escape: {
+          action: () => {
+            this.onClose();
+          },
+        },
+        ArrowLeft: {
+          action: () => {
+            this.onClickChangeAttachment(
+              this.allAttachments[this.activeImageIndex - 1],
+              this.activeImageIndex - 1
+            );
+          },
+        },
+        ArrowRight: {
+          action: () => {
+            this.onClickChangeAttachment(
+              this.allAttachments[this.activeImageIndex + 1],
+              this.activeImageIndex + 1
+            );
+          },
+        },
+      };
     },
     onClickDownload() {
       const { file_type: type, data_url: url } = this.activeAttachment;
@@ -249,126 +337,51 @@ export default {
       link.download = `attachment.${type}`;
       link.click();
     },
+    onRotate(type) {
+      if (!this.isImage) {
+        return;
+      }
+
+      const rotation = type === 'clockwise' ? 90 : -90;
+
+      // Reset rotation if it is 360
+      if (Math.abs(this.activeImageRotation) === 360) {
+        this.activeImageRotation = rotation;
+      } else {
+        this.activeImageRotation += rotation;
+      }
+    },
+    onClickZoomImage() {
+      this.onZoom(0.1);
+    },
+    onZoom(scale) {
+      if (!this.isImage) {
+        return;
+      }
+
+      const newZoomScale = this.zoomScale + scale;
+      // Check if the new zoom scale is within the allowed range
+      if (newZoomScale > MAX_ZOOM_LEVEL) {
+        // Set zoom to max but do not reset to default
+        this.zoomScale = MAX_ZOOM_LEVEL;
+        return;
+      }
+      if (newZoomScale < MIN_ZOOM_LEVEL) {
+        // Set zoom to min but do not reset to default
+        this.zoomScale = MIN_ZOOM_LEVEL;
+        return;
+      }
+      // If within bounds, update the zoom scale
+      this.zoomScale = newZoomScale;
+    },
+
+    onWheelImageZoom(e) {
+      if (!this.isImage) {
+        return;
+      }
+      const scale = e.deltaY > 0 ? -0.1 : 0.1;
+      this.onZoom(scale);
+    },
   },
 };
 </script>
-<style lang="scss" scoped>
-.gallery-modal--wrap {
-  display: flex;
-  flex-direction: column;
-  height: inherit;
-  width: inherit;
-
-  .gallery-modal--header {
-    align-items: center;
-    display: flex;
-    height: var(--space-jumbo);
-    justify-content: space-between;
-    padding: var(--space-small) var(--space-medium);
-    width: 100%;
-
-    .header-info--wrap {
-      align-items: center;
-      display: flex;
-      justify-content: flex-start;
-      min-width: var(--space-giga);
-
-      .header-info {
-        align-items: flex-start;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        margin-left: var(--space-small);
-
-        .sender-name {
-          display: inline-block;
-          line-height: 1.4;
-          margin: 0;
-          padding: 0;
-          text-transform: capitalize;
-        }
-
-        .time-stamp {
-          color: var(--s-400);
-          font-size: var(--font-size-mini);
-          margin: 0;
-          padding: 0;
-        }
-      }
-    }
-
-    .file-name--header {
-      align-items: center;
-      color: var(--s-700);
-      display: flex;
-      font-weight: var(--font-weight-bold);
-      justify-content: flex-start;
-      min-width: 0;
-      padding: var(--space-smaller);
-      width: auto;
-    }
-
-    .header-actions {
-      align-items: center;
-      display: flex;
-      gap: var(--space-small);
-      justify-content: flex-end;
-      min-width: var(--space-giga);
-    }
-  }
-
-  .gallery-modal--body {
-    align-items: center;
-    display: flex;
-    height: 100%;
-    justify-content: center;
-    width: 100%;
-  }
-
-  .gallery-modal--footer {
-    align-items: center;
-    display: flex;
-    height: var(--space-jumbo);
-    justify-content: center;
-    padding: var(--space-small) var(--space-medium);
-    width: 100%;
-
-    .header-count {
-      align-items: center;
-      border-radius: var(--border-radius-small);
-      background-color: var(--s-25);
-      color: var(--s-600);
-      display: flex;
-      font-weight: var(--font-weight-bold);
-      justify-content: center;
-      min-width: 8rem;
-      padding: var(--space-smaller);
-    }
-  }
-
-  .attachments-viewer {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    justify-content: center;
-    width: 100%;
-
-    .attachment-view {
-      img {
-        margin: 0 auto;
-      }
-
-      video {
-        margin: 0 auto;
-      }
-    }
-  }
-
-  .attachment-toggle--button {
-    display: flex;
-    justify-content: center;
-    min-width: var(--space-mega);
-    width: var(--space-mega);
-  }
-}
-</style>

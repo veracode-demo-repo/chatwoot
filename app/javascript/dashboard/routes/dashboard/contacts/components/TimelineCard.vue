@@ -6,7 +6,7 @@
     <div class="card-wrap">
       <div class="header">
         <div class="text-wrap">
-          <h6 class="text-block-title">
+          <h6 class="text-sm">
             {{ eventType }}
           </h6>
           <span class="event-path">on {{ eventPath }}</span>
@@ -28,10 +28,8 @@
 </template>
 
 <script>
-import timeMixin from 'dashboard/mixins/time';
+import { dynamicTime } from 'shared/helpers/timeHelper';
 export default {
-  mixins: [timeMixin],
-
   props: {
     eventType: {
       type: String,
@@ -53,7 +51,7 @@ export default {
 
   computed: {
     readableTime() {
-      return this.dynamicTime(this.timeStamp);
+      return dynamicTime(this.timeStamp);
     },
   },
 

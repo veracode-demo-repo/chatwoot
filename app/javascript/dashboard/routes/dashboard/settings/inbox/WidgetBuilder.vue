@@ -1,7 +1,7 @@
 <template>
-  <div class="settings--content">
+  <div class="mx-8">
     <div class="widget-builder-container">
-      <div class="settings-container">
+      <div class="settings-container w-100 lg:w-[40%]">
         <div class="settings-content">
           <form @submit.prevent="updateWidget">
             <woot-avatar-uploader
@@ -123,7 +123,7 @@
           </form>
         </div>
       </div>
-      <div class="widget-container">
+      <div class="widget-container w-100 lg:w-3/5">
         <input-radio-group
           name="widget-view-options"
           :items="getWidgetViewOptions"
@@ -154,9 +154,9 @@
 
 <script>
 import { mapGetters } from 'vuex';
-import Widget from 'dashboard/modules/widget-preview/components/Widget';
-import InputRadioGroup from './components/InputRadioGroup';
-import alertMixin from 'shared/mixins/alertMixin';
+import { useAlert } from 'dashboard/composables';
+import Widget from 'dashboard/modules/widget-preview/components/Widget.vue';
+import InputRadioGroup from './components/InputRadioGroup.vue';
 import { required } from 'vuelidate/lib/validators';
 import { LOCAL_STORAGE_KEYS } from 'dashboard/constants/localStorage';
 import { LocalStorage } from 'shared/helpers/localStorage';
@@ -166,7 +166,6 @@ export default {
     Widget,
     InputRadioGroup,
   },
-  mixins: [alertMixin],
   props: {
     inbox: {
       type: Object,
@@ -355,13 +354,13 @@ export default {
         await this.$store.dispatch('inboxes/deleteInboxAvatar', this.inbox.id);
         this.avatarFile = null;
         this.avatarUrl = '';
-        this.showAlert(
+        useAlert(
           this.$t(
             'INBOX_MGMT.WIDGET_BUILDER.WIDGET_OPTIONS.AVATAR.DELETE.API.SUCCESS_MESSAGE'
           )
         );
       } catch (error) {
-        this.showAlert(
+        useAlert(
           error.message
             ? error.message
             : this.$t(
@@ -394,13 +393,13 @@ export default {
           payload.avatar = this.avatarFile;
         }
         await this.$store.dispatch('inboxes/updateInbox', payload);
-        this.showAlert(
+        useAlert(
           this.$t(
             'INBOX_MGMT.WIDGET_BUILDER.WIDGET_OPTIONS.UPDATE.API.SUCCESS_MESSAGE'
           )
         );
       } catch (error) {
-        this.showAlert(
+        useAlert(
           error.message ||
             this.$t(
               'INBOX_MGMT.WIDGET_BUILDER.WIDGET_OPTIONS.UPDATE.API.ERROR_MESSAGE'
@@ -422,17 +421,12 @@ export default {
   display: flex;
   flex-direction: row;
   padding: var(--space-one);
-  @include breakpoint(900px down) {
-    flex-direction: column;
-  }
+  // @include breakpoint(900px down) {
+  //   flex-direction: column;
+  // }
 }
 
 .settings-container {
-  width: 40%;
-  @include breakpoint(900px down) {
-    width: 100%;
-  }
-
   .settings-content {
     padding: var(--space-normal) var(--space-zero);
     overflow-y: scroll;
@@ -445,30 +439,23 @@ export default {
 }
 
 .widget-container {
-  width: 60%;
-
-  @include breakpoint(900px down) {
-    width: 100%;
-  }
-
   .widget-preview {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-end;
-    min-height: 65rem;
+    min-height: 40.625rem;
     margin: var(--space-zero) var(--space-two) var(--space-two) var(--space-two);
     padding: var(--space-one) var(--space-one) var(--space-one) var(--space-one);
-    background: var(--s-50);
+    @apply bg-slate-50 dark:bg-slate-700;
 
-    @include breakpoint(500px down) {
-      background: none;
-    }
+    // @include breakpoint(500px down) {
+    //   background: none;
+    // }
   }
+
   .widget-script {
-    margin: 0 var(--space-two);
-    padding: var(--space-one);
-    background: var(--s-50);
+    @apply mx-5 p-2.5 bg-slate-50 dark:bg-slate-700;
   }
 }
 </style>

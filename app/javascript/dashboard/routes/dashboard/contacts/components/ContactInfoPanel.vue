@@ -1,7 +1,7 @@
 <template>
   <div
-    class="small-12 medium-3 bg-white contact--panel"
-    :class="{ 'border-left': showAvatar }"
+    class="relative w-1/4 h-full overflow-y-auto text-sm bg-white dark:bg-slate-900 border-slate-50 dark:border-slate-800/50"
+    :class="showAvatar ? 'border-l border-solid ' : 'border-r border-solid'"
   >
     <contact-info
       :show-close-button="showCloseButton"
@@ -38,12 +38,12 @@
                 :contact-id="contact.id"
                 attribute-type="contact_attribute"
                 attribute-class="conversation--attribute"
+                attribute-from="contact_panel"
                 :custom-attributes="contact.custom_attributes"
+                :empty-state-message="
+                  $t('CONTACT_PANEL.SIDEBAR_SECTIONS.NO_RECORDS_FOUND')
+                "
                 class="even"
-              />
-              <custom-attribute-selector
-                attribute-type="contact_attribute"
-                :contact-id="contact.id"
               />
             </accordion-item>
           </div>
@@ -80,14 +80,13 @@
 </template>
 
 <script>
-import AccordionItem from 'dashboard/components/Accordion/AccordionItem';
-import ContactConversations from 'dashboard/routes/dashboard/conversation/ContactConversations';
-import ContactInfo from 'dashboard/routes/dashboard/conversation/contact/ContactInfo';
+import AccordionItem from 'dashboard/components/Accordion/AccordionItem.vue';
+import ContactConversations from 'dashboard/routes/dashboard/conversation/ContactConversations.vue';
+import ContactInfo from 'dashboard/routes/dashboard/conversation/contact/ContactInfo.vue';
 import ContactLabel from 'dashboard/routes/dashboard/contacts/components/ContactLabels.vue';
 import CustomAttributes from 'dashboard/routes/dashboard/conversation/customAttributes/CustomAttributes.vue';
-import CustomAttributeSelector from 'dashboard/routes/dashboard/conversation/customAttributes/CustomAttributeSelector.vue';
 import draggable from 'vuedraggable';
-import uiSettingsMixin from 'dashboard/mixins/uiSettings';
+import { useUISettings } from 'dashboard/composables/useUISettings';
 
 export default {
   components: {
@@ -96,10 +95,8 @@ export default {
     ContactInfo,
     ContactLabel,
     CustomAttributes,
-    CustomAttributeSelector,
     draggable,
   },
-  mixins: [uiSettingsMixin],
   props: {
     contact: {
       type: Object,
@@ -117,6 +114,21 @@ export default {
       type: Boolean,
       default: true,
     },
+  },
+  setup() {
+    const {
+      updateUISettings,
+      isContactSidebarItemOpen,
+      contactSidebarItemsOrder,
+      toggleSidebarUIState,
+    } = useUISettings();
+
+    return {
+      updateUISettings,
+      isContactSidebarItemOpen,
+      contactSidebarItemsOrder,
+      toggleSidebarUIState,
+    };
   },
   data() {
     return {
@@ -148,39 +160,17 @@ export default {
 <style lang="scss" scoped>
 ::v-deep {
   .contact--profile {
-    padding-bottom: var(--space-slab);
-    margin-bottom: var(--space-normal);
+    @apply pb-3 mb-4;
   }
-}
-.contact--panel {
-  height: 100%;
-  background: white;
-  font-size: var(--font-size-small);
-  overflow-y: auto;
-  overflow: auto;
-  position: relative;
-  border-right: 1px solid var(--color-border);
 }
 
 .list-group {
   .list-group-item {
-    background-color: var(--white);
+    @apply bg-white dark:bg-slate-900;
   }
 }
 
 .conversation--details {
-  padding: 0 var(--space-normal);
-}
-
-.contact--mute {
-  color: var(--r-400);
-  display: block;
-  text-align: left;
-}
-
-.contact--actions {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  @apply py-0 px-4;
 }
 </style>

@@ -12,16 +12,15 @@
 
 <script>
 import { mapGetters } from 'vuex';
-import alertMixin from 'shared/mixins/alertMixin';
+import { useAlert } from 'dashboard/composables';
 
-import PortalSettingsBasicForm from 'dashboard/routes/dashboard/helpcenter/components/PortalSettingsBasicForm';
+import PortalSettingsBasicForm from 'dashboard/routes/dashboard/helpcenter/components/PortalSettingsBasicForm.vue';
 import { PORTALS_EVENTS } from '../../../../../helper/AnalyticsHelper/events';
 
 export default {
   components: {
     PortalSettingsBasicForm,
   },
-  mixins: [alertMixin],
   data() {
     return {
       name: '',
@@ -40,9 +39,12 @@ export default {
   methods: {
     async createPortal(portal) {
       try {
+        const { blob_id: blobId } = portal;
         await this.$store.dispatch('portals/create', {
           portal,
+          blob_id: blobId,
         });
+
         this.alertMessage = this.$t(
           'HELP_CENTER.PORTAL.ADD.API.SUCCESS_MESSAGE_FOR_BASIC'
         );
@@ -60,7 +62,7 @@ export default {
           error?.message ||
           this.$t('HELP_CENTER.PORTAL.ADD.API.ERROR_MESSAGE_FOR_BASIC');
       } finally {
-        this.showAlert(this.alertMessage);
+        useAlert(this.alertMessage);
       }
     },
   },

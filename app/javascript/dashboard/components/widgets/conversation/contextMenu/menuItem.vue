@@ -1,5 +1,9 @@
 <template>
-  <div class="menu" role="button" @click.stop="$emit('click')">
+  <div
+    class="menu text-slate-800 dark:text-slate-100"
+    role="button"
+    @click.stop="$emit('click')"
+  >
     <fluent-icon
       v-if="variant === 'icon' && option.icon"
       :icon="option.icon"
@@ -19,7 +23,9 @@
       size="20px"
       class="agent-thumbnail"
     />
-    <p class="menu-label text-truncate">{{ option.label }}</p>
+    <p class="menu-label overflow-hidden whitespace-nowrap text-ellipsis">
+      {{ option.label }}
+    </p>
   </div>
 </template>
 
@@ -44,22 +50,15 @@ export default {
 
 <style scoped lang="scss">
 .menu {
-  display: flex;
-  align-items: center;
-  flex-wrap: nowrap;
   width: calc(var(--space-mega) * 2);
-  padding: var(--space-smaller);
-  border-radius: var(--border-radius-small);
-  overflow: hidden;
+  @apply flex items-center flex-nowrap p-1 rounded-sm overflow-hidden cursor-pointer;
+
   .menu-label {
-    margin: 0 var(--space-small);
-    font-size: var(--font-size-mini);
-    flex-shrink: 0;
+    @apply my-0 mx-2 text-xs flex-shrink-0;
   }
 
   &:hover {
-    background-color: var(--w-500);
-    color: var(--white);
+    @apply bg-woot-500 dark:bg-woot-500 text-white dark:text-slate-50;
   }
 }
 
@@ -68,10 +67,6 @@ export default {
 }
 
 .label-pill {
-  width: var(--space-normal);
-  height: var(--space-normal);
-  border-radius: var(--border-radius-rounded);
-  border: 1px solid var(--s-50);
-  flex-shrink: 0;
+  @apply w-4 h-4 rounded-full border border-slate-50 border-solid dark:border-slate-900 flex-shrink-0;
 }
 </style>

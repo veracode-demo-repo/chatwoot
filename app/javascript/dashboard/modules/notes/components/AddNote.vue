@@ -1,12 +1,14 @@
 <template>
-  <div class="card">
+  <div
+    class="flex flex-col mb-2 p-4 border border-solid border-slate-75 dark:border-slate-700 overflow-hidden rounded-md flex-grow shadow-sm bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-100"
+  >
     <woot-message-editor
       v-model="noteContent"
       class="input--note"
       :placeholder="$t('NOTES.ADD.PLACEHOLDER')"
       :enable-suggestions="false"
     />
-    <div class="footer">
+    <div class="flex justify-end w-full">
       <woot-button
         color-scheme="warning"
         :title="$t('NOTES.ADD.TITLE')"
@@ -20,13 +22,13 @@
 </template>
 
 <script>
-import WootMessageEditor from 'dashboard/components/widgets/WootWriter/Editor';
-import { hasPressedCommandAndEnter } from 'shared/helpers/KeyboardHelpers';
+import WootMessageEditor from 'dashboard/components/widgets/WootWriter/Editor.vue';
+import keyboardEventListenerMixins from 'shared/mixins/keyboardEventListenerMixins';
 export default {
   components: {
     WootMessageEditor,
   },
-
+  mixins: [keyboardEventListenerMixins],
   data() {
     return {
       noteContent: '',
@@ -38,21 +40,14 @@ export default {
       return this.noteContent === '';
     },
   },
-
-  mounted() {
-    document.addEventListener('keydown', this.onMetaEnter);
-  },
-
-  beforeDestroy() {
-    document.removeEventListener('keydown', this.onMetaEnter);
-  },
-
   methods: {
-    onMetaEnter(e) {
-      if (hasPressedCommandAndEnter(e)) {
-        e.preventDefault();
-        this.onAdd();
-      }
+    getKeyboardEvents() {
+      return {
+        '$mod+Enter': {
+          action: () => this.onAdd(),
+          allowOnFocusedInput: true,
+        },
+      };
     },
     onAdd() {
       if (this.noteContent !== '') {
@@ -72,13 +67,7 @@ export default {
   }
 
   &::v-deep .ProseMirror-woot-style {
-    max-height: 36rem;
+    max-height: 22.5rem;
   }
-}
-
-.footer {
-  display: flex;
-  justify-content: flex-end;
-  width: 100%;
 }
 </style>

@@ -39,6 +39,17 @@
           "PLACEHOLDER": "أدخل مفتاح السمة المخصصة",
           "ERROR": "المفتاح مطلوب",
           "IN_VALID": "مفتاح غير صالح"
+        },
+        "REGEX_PATTERN": {
+          "LABEL": "نمط Regex",
+          "PLACEHOLDER": "الرجاء إدخال سمة مخصصة ريمكس (اختياري)"
+        },
+        "REGEX_CUE": {
+          "LABEL": "Regex Cue",
+          "PLACEHOLDER": "الرجاء إدخال تلميح نمط regex (اختياري)"
+        },
+        "ENABLE_REGEX": {
+          "LABEL": "تمكين التحقق من صحة regex"
         }
       },
       "API": {
@@ -93,6 +104,17 @@
       "EMPTY_RESULT": {
         "404": "لا توجد سمات مخصصة تم إنشاؤها",
         "NOT_FOUND": "لا توجد سمات مخصصة تم تكوينها"
+      },
+      "REGEX_PATTERN": {
+        "LABEL": "نمط Regex",
+        "PLACEHOLDER": "الرجاء إدخال سمة مخصصة ريمكس (اختياري)"
+      },
+      "REGEX_CUE": {
+        "LABEL": "Regex Cue",
+        "PLACEHOLDER": "الرجاء إدخال تلميح نمط regex (اختياري)"
+      },
+      "ENABLE_REGEX": {
+        "LABEL": "تمكين التحقق من صحة regex"
       }
     }
   }

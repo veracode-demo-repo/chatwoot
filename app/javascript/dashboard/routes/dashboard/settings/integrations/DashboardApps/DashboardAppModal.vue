@@ -1,13 +1,12 @@
 <template>
   <woot-modal :show="show" :on-close="closeModal">
-    <div class="column content-box">
+    <div class="flex flex-col h-auto overflow-auto">
       <woot-modal-header :header-title="header" />
-
-      <form class="row" @submit.prevent="submit">
+      <form class="w-full" @submit.prevent="submit">
         <woot-input
           v-model.trim="app.title"
           :class="{ error: $v.app.title.$error }"
-          class="medium-12 columns"
+          class="w-full"
           :label="$t('INTEGRATION_SETTINGS.DASHBOARD_APPS.FORM.TITLE_LABEL')"
           :placeholder="
             $t('INTEGRATION_SETTINGS.DASHBOARD_APPS.FORM.TITLE_PLACEHOLDER')
@@ -23,7 +22,7 @@
         <woot-input
           v-model.trim="app.content.url"
           :class="{ error: $v.app.content.url.$error }"
-          class="medium-12 columns app--url_input"
+          class="w-full"
           :label="$t('INTEGRATION_SETTINGS.DASHBOARD_APPS.FORM.URL_LABEL')"
           :placeholder="
             $t('INTEGRATION_SETTINGS.DASHBOARD_APPS.FORM.URL_PLACEHOLDER')
@@ -36,19 +35,17 @@
           data-testid="app-url"
           @input="$v.app.content.url.$touch"
         />
-        <div class="modal-footer">
-          <div class="medium-12 columns">
-            <woot-button
-              :is-loading="isLoading"
-              :is-disabled="$v.$invalid"
-              data-testid="label-submit"
-            >
-              {{ submitButtonLabel }}
-            </woot-button>
-            <woot-button class="button clear" @click.prevent="closeModal">
-              {{ $t('INTEGRATION_SETTINGS.DASHBOARD_APPS.CREATE.FORM_CANCEL') }}
-            </woot-button>
-          </div>
+        <div class="flex flex-row justify-end w-full gap-2 px-0 py-2">
+          <woot-button
+            :is-loading="isLoading"
+            :is-disabled="$v.$invalid"
+            data-testid="label-submit"
+          >
+            {{ submitButtonLabel }}
+          </woot-button>
+          <woot-button class="button clear" @click.prevent="closeModal">
+            {{ $t('INTEGRATION_SETTINGS.DASHBOARD_APPS.CREATE.FORM_CANCEL') }}
+          </woot-button>
         </div>
       </form>
     </div>
@@ -57,10 +54,9 @@
 
 <script>
 import { required, url } from 'vuelidate/lib/validators';
-import alertMixin from 'shared/mixins/alertMixin';
+import { useAlert } from 'dashboard/composables';
 
 export default {
-  mixins: [alertMixin],
   props: {
     show: {
       type: Boolean,
@@ -140,14 +136,14 @@ export default {
 
         this.isLoading = true;
         await this.$store.dispatch(`dashboardApps/${action}`, payload);
-        this.showAlert(
+        useAlert(
           this.$t(
             `INTEGRATION_SETTINGS.DASHBOARD_APPS.${this.mode}.API_SUCCESS`
           )
         );
         this.closeModal();
       } catch (err) {
-        this.showAlert(
+        useAlert(
           this.$t(`INTEGRATION_SETTINGS.DASHBOARD_APPS.${this.mode}.API_ERROR`)
         );
       } finally {
@@ -157,18 +153,3 @@ export default {
   },
 };
 </script>
-
-<style scoped lang="scss">
-.content-row {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  .app--url_input {
-    flex: 1;
-  }
-  .app--url_add_btn {
-    margin-left: var(--space-one);
-    margin-top: var(--space-one);
-  }
-}
-</style>

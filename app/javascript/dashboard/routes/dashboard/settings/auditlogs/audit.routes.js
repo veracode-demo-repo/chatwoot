@@ -1,6 +1,7 @@
-import SettingsContent from '../Wrapper';
-import AuditLogsHome from './Index';
 import { frontendURL } from '../../../../helper/URLHelper';
+
+const SettingsContent = () => import('../Wrapper.vue');
+const AuditLogsHome = () => import('./Index.vue');
 
 export default {
   routes: [
@@ -15,13 +16,14 @@ export default {
       children: [
         {
           path: '',
-          name: 'auditlogs_wrapper',
           redirect: 'list',
         },
         {
           path: 'list',
           name: 'auditlogs_list',
-          roles: ['administrator'],
+          meta: {
+            permissions: ['administrator'],
+          },
           component: AuditLogsHome,
         },
       ],

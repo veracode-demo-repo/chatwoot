@@ -1,14 +1,15 @@
 /* eslint arrow-body-style: 0 */
-import SettingsContent from '../Wrapper';
-import TeamsHome from './Index';
-import CreateStepWrap from './Create/Index';
-import EditStepWrap from './Edit/Index';
-import CreateTeam from './Create/CreateTeam';
-import EditTeam from './Edit/EditTeam';
-import AddAgents from './Create/AddAgents';
-import EditAgents from './Edit/EditAgents';
-import FinishSetup from './FinishSetup';
 import { frontendURL } from '../../../../helper/URLHelper';
+
+const CreateStepWrap = () => import('./Create/Index.vue');
+const EditStepWrap = () => import('./Edit/Index.vue');
+const CreateTeam = () => import('./Create/CreateTeam.vue');
+const EditTeam = () => import('./Edit/EditTeam.vue');
+const AddAgents = () => import('./Create/AddAgents.vue');
+const EditAgents = () => import('./Edit/EditAgents.vue');
+const FinishSetup = () => import('./FinishSetup.vue');
+const SettingsContent = () => import('../Wrapper.vue');
+const TeamsHome = () => import('./Index.vue');
 
 export default {
   routes: [
@@ -28,14 +29,15 @@ export default {
       children: [
         {
           path: '',
-          name: 'settings_teams',
           redirect: 'list',
         },
         {
           path: 'list',
           name: 'settings_teams_list',
           component: TeamsHome,
-          roles: ['administrator'],
+          meta: {
+            permissions: ['administrator'],
+          },
         },
         {
           path: 'new',
@@ -45,18 +47,24 @@ export default {
               path: '',
               name: 'settings_teams_new',
               component: CreateTeam,
-              roles: ['administrator'],
+              meta: {
+                permissions: ['administrator'],
+              },
             },
             {
               path: ':teamId/finish',
               name: 'settings_teams_finish',
               component: FinishSetup,
-              roles: ['administrator'],
+              meta: {
+                permissions: ['administrator'],
+              },
             },
             {
               path: ':teamId/agents',
               name: 'settings_teams_add_agents',
-              roles: ['administrator'],
+              meta: {
+                permissions: ['administrator'],
+              },
               component: AddAgents,
             },
           ],
@@ -69,18 +77,24 @@ export default {
               path: '',
               name: 'settings_teams_edit',
               component: EditTeam,
-              roles: ['administrator'],
+              meta: {
+                permissions: ['administrator'],
+              },
             },
             {
               path: 'agents',
               name: 'settings_teams_edit_members',
               component: EditAgents,
-              roles: ['administrator'],
+              meta: {
+                permissions: ['administrator'],
+              },
             },
             {
               path: 'finish',
               name: 'settings_teams_edit_finish',
-              roles: ['administrator'],
+              meta: {
+                permissions: ['administrator'],
+              },
               component: FinishSetup,
             },
           ],

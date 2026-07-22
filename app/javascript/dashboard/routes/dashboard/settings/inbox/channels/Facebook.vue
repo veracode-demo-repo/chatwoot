@@ -1,13 +1,19 @@
 <template>
-  <div class="wizard-body columns content-box small-9">
-    <div v-if="!hasLoginStarted" class="login-init full-height">
+  <div
+    class="border border-slate-25 dark:border-slate-800/60 bg-white dark:bg-slate-900 h-full p-6 w-full max-w-full md:w-3/4 md:max-w-[75%] flex-shrink-0 flex-grow-0"
+  >
+    <div
+      v-if="!hasLoginStarted"
+      class="flex flex-col items-center justify-center h-full text-center"
+    >
       <a href="#" @click="startLogin()">
         <img
+          class="w-auto h-10"
           src="~dashboard/assets/images/channels/facebook_login.png"
           alt="Facebook-logo"
         />
       </a>
-      <p>
+      <p class="py-6">
         {{
           useInstallationName(
             $t('INBOX_MGMT.ADD.FB.HELP'),
@@ -17,9 +23,20 @@
       </p>
     </div>
     <div v-else>
-      <loading-state v-if="showLoader" :message="emptyStateMessage" />
-      <form v-if="!showLoader" class="row" @submit.prevent="createChannel()">
-        <div class="medium-12 columns">
+      <div v-if="hasError" class="max-w-lg mx-auto text-center">
+        <h5>{{ errorStateMessage }}</h5>
+        <p
+          v-if="errorStateDescription"
+          v-dompurify-html="errorStateDescription"
+        />
+      </div>
+      <loading-state v-else-if="showLoader" :message="emptyStateMessage" />
+      <form
+        v-else
+        class="flex flex-wrap mx-0"
+        @submit.prevent="createChannel()"
+      >
+        <div class="w-full">
           <page-header
             :header-title="$t('INBOX_MGMT.ADD.DETAILS.TITLE')"
             :header-content="
@@ -30,8 +47,8 @@
             "
           />
         </div>
-        <div class="medium-7 columns">
-          <div class="medium-12 columns">
+        <div class="w-3/5">
+          <div class="w-full">
             <div class="input-wrap" :class="{ error: $v.selectedPage.$error }">
               {{ $t('INBOX_MGMT.ADD.FB.CHOOSE_PAGE') }}
               <multiselect
@@ -52,7 +69,7 @@
               </span>
             </div>
           </div>
-          <div class="medium-12 columns">
+          <div class="w-full">
             <label :class="{ error: $v.pageName.$error }">
               {{ $t('INBOX_MGMT.ADD.FB.INBOX_NAME') }}
               <input
@@ -66,7 +83,7 @@
               </span>
             </label>
           </div>
-          <div class="medium-12 columns text-right">
+          <div class="w-full text-right">
             <input type="submit" value="Create Inbox" class="button" />
           </div>
         </div>
@@ -77,14 +94,18 @@
 <script>
 /* eslint-env browser */
 /* global FB */
+import { useAlert } from 'dashboard/composables';
 import { required } from 'vuelidate/lib/validators';
-import LoadingState from 'dashboard/components/widgets/LoadingState';
+import LoadingState from 'dashboard/components/widgets/LoadingState.vue';
 import { mapGetters } from 'vuex';
 import ChannelApi from '../../../../../api/channels';
-import PageHeader from '../../SettingsSubPageHeader';
+import PageHeader from '../../SettingsSubPageHeader.vue';
 import router from '../../../../index';
 import globalConfigMixin from 'shared/mixins/globalConfigMixin';
 import accountMixin from '../../../../../mixins/account';
+
+import { loadScript } from 'dashboard/helper/DOMHelpers';
+import * as Sentry from '@sentry/browser';
 
 export default {
   components: {
@@ -95,6 +116,7 @@ export default {
   data() {
     return {
       isCreating: false,
+      hasError: false,
       omniauth_token: '',
       user_access_token: '',
       channel: 'facebook',
@@ -102,6 +124,8 @@ export default {
       pageName: '',
       pageList: [],
       emptyStateMessage: this.$t('INBOX_MGMT.DETAILS.LOADING_FB'),
+      errorStateMessage: '',
+      errorStateDescription: '',
       hasLoginStarted: false,
     };
   },
@@ -131,19 +155,29 @@ export default {
     }),
   },
 
-  created() {
-    this.initFB();
-    this.loadFBsdk();
-  },
-
   mounted() {
-    this.initFB();
+    window.fbAsyncInit = this.runFBInit;
   },
 
   methods: {
-    startLogin() {
+    async startLogin() {
       this.hasLoginStarted = true;
-      this.tryFBlogin();
+      try {
+        // this will load the SDK in a promise, and resolve it when the sdk is loaded
+        // in case the SDK is already present, it will resolve immediately
+        await this.loadFBsdk();
+        this.runFBInit(); // run init anyway, `tryFBlogin` won't wait for `fbAsyncInit` otherwise.
+        this.tryFBlogin(); // make an attempt to login
+      } catch (error) {
+        if (error.name === 'ScriptLoaderError') {
+          // if the error was related to script loading, we show a toast
+          useAlert(this.$t('INBOX_MGMT.DETAILS.ERROR_FB_LOADING'));
+        } else {
+          // if the error was anything else, we capture it and show a toast
+          Sentry.captureException(error);
+          useAlert(this.$t('INBOX_MGMT.DETAILS.ERROR_FB_AUTH'));
+        }
+      }
     },
 
     setPageName({ name }) {
@@ -157,57 +191,55 @@ export default {
       }
     },
 
-    initFB() {
-      if (window.fbSDKLoaded === undefined) {
-        window.fbAsyncInit = () => {
-          FB.init({
-            appId: window.chatwootConfig.fbAppId,
-            xfbml: true,
-            version: window.chatwootConfig.fbApiVersion,
-            status: true,
-          });
-          window.fbSDKLoaded = true;
-          FB.AppEvents.logPageView();
-        };
-      }
+    runFBInit() {
+      FB.init({
+        appId: window.chatwootConfig.fbAppId,
+        xfbml: true,
+        version: window.chatwootConfig.fbApiVersion,
+        status: true,
+      });
+      window.fbSDKLoaded = true;
+      FB.AppEvents.logPageView();
     },
 
-    loadFBsdk() {
-      ((d, s, id) => {
-        let js;
-        // eslint-disable-next-line
-        const fjs = (js = d.getElementsByTagName(s)[0]);
-        if (d.getElementById(id)) {
-          return;
-        }
-        js = d.createElement(s);
-        js.id = id;
-        js.src = '//connect.facebook.net/en_US/sdk.js';
-        fjs.parentNode.insertBefore(js, fjs);
-      })(document, 'script', 'facebook-jssdk');
+    async loadFBsdk() {
+      return loadScript('https://connect.facebook.net/en_US/sdk.js', {
+        id: 'facebook-jssdk',
+      });
     },
 
     tryFBlogin() {
       FB.login(
         response => {
+          this.hasError = false;
           if (response.status === 'connected') {
             this.fetchPages(response.authResponse.accessToken);
           } else if (response.status === 'not_authorized') {
+            // eslint-disable-next-line no-console
+            console.error('FACEBOOK AUTH ERROR', response);
+            this.hasError = true;
             // The person is logged into Facebook, but not your app.
-            this.emptyStateMessage = this.$t(
-              'INBOX_MGMT.DETAILS.ERROR_FB_AUTH'
+            this.errorStateMessage = this.$t(
+              'INBOX_MGMT.DETAILS.ERROR_FB_UNAUTHORIZED'
+            );
+            this.errorStateDescription = this.$t(
+              'INBOX_MGMT.DETAILS.ERROR_FB_UNAUTHORIZED_HELP'
             );
           } else {
+            // eslint-disable-next-line no-console
+            console.error('FACEBOOK AUTH ERROR', response);
+            this.hasError = true;
             // The person is not logged into Facebook, so we're not sure if
             // they are logged into this app or not.
-            this.emptyStateMessage = this.$t(
+            this.errorStateMessage = this.$t(
               'INBOX_MGMT.DETAILS.ERROR_FB_AUTH'
             );
+            this.errorStateDescription = '';
           }
         },
         {
           scope:
-            'pages_manage_metadata,pages_messaging,instagram_basic,pages_show_list,pages_read_engagement,instagram_manage_messages',
+            'pages_manage_metadata,business_management,pages_messaging,instagram_basic,pages_show_list,pages_read_engagement,instagram_manage_messages',
         }
       );
     },

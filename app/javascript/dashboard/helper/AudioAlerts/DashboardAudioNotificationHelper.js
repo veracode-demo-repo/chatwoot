@@ -52,6 +52,10 @@ class DashboardAudioNotificationHelper {
   };
 
   executeRecurringNotification = () => {
+    if (!window.WOOT || !window.WOOT.$store) {
+      this.clearSetTimeout();
+      return;
+    }
     const mineConversation = window.WOOT.$store.getters.getMineChats({
       assigneeType: 'me',
       status: 'open',
@@ -97,6 +101,7 @@ class DashboardAudioNotificationHelper {
     return conversationAssigneeId === this.currentUserId;
   };
 
+  // eslint-disable-next-line class-methods-use-this
   isMessageFromCurrentConversation = message => {
     return (
       window.WOOT.$store.getters.getSelectedChat?.id === message.conversation_id

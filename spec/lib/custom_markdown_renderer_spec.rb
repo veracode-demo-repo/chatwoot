@@ -68,6 +68,20 @@ describe CustomMarkdownRenderer do
       end
     end
 
+    context 'when link is a Loom URL' do
+      let(:loom_url) { 'https://www.loom.com/share/VIDEO_ID' }
+
+      it 'renders an iframe with Loom embed code' do
+        output = render_markdown_link(loom_url)
+        expect(output).to include(`
+          <iframe
+            width="640"
+            height="360"
+            src="https://www.loom.com/embed/VIDEO_ID"
+        `)
+      end
+    end
+
     context 'when link is a Vimeo URL' do
       let(:vimeo_url) { 'https://vimeo.com/1234567' }
 
@@ -104,13 +118,23 @@ describe CustomMarkdownRenderer do
     end
 
     context 'when multiple links are present' do
-      it 'renders all links' do
-        markdown = '[youtube](https://www.youtube.com/watch?v=VIDEO_ID) [vimeo](https://vimeo.com/1234567) ^ hello ^ [normal](https://example.com)'
+      it 'renders all links when present between empty lines' do
+        markdown = "\n[youtube](https://www.youtube.com/watch?v=VIDEO_ID)\n\n[vimeo](https://vimeo.com/1234567)\n^ hello ^ [normal](https://example.com)"
         output = render_markdown(markdown)
         expect(output).to include('src="https://www.youtube.com/embed/VIDEO_ID"')
         expect(output).to include('src="https://player.vimeo.com/video/1234567"')
         expect(output).to include('<a href="https://example.com">')
         expect(output).to include('<sup> hello </sup>')
+      end
+    end
+
+    context 'when links within text are present' do
+      it 'renders only text within blank lines as embeds' do
+        markdown = "\n[youtube](https://www.youtube.com/watch?v=VIDEO_ID)\nthis is such an amazing [vimeo](https://vimeo.com/1234567)\n[vimeo](https://vimeo.com/1234567)"
+        output = render_markdown(markdown)
+        expect(output).to include('src="https://www.youtube.com/embed/VIDEO_ID"')
+        expect(output).to include('href="https://vimeo.com/1234567"')
+        expect(output).to include('src="https://player.vimeo.com/video/1234567"')
       end
     end
   end

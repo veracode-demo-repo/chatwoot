@@ -2,16 +2,10 @@
   <div v-on-clickaway="onClose" class="bulk-action__teams">
     <div class="triangle">
       <svg height="12" viewBox="0 0 24 12" width="24">
-        <path
-          d="M20 12l-8-8-12 12"
-          fill="var(--white)"
-          fill-rule="evenodd"
-          stroke="var(--s-50)"
-          stroke-width="1px"
-        />
+        <path d="M20 12l-8-8-12 12" fill-rule="evenodd" stroke-width="1px" />
       </svg>
     </div>
-    <div class="header flex-between">
+    <div class="header flex items-center justify-between">
       <span>{{ $t('BULK_ACTION.TEAMS.TEAM_SELECT_LABEL') }}</span>
       <woot-button
         size="tiny"
@@ -25,7 +19,9 @@
       <div class="team__list-container">
         <ul>
           <li class="search-container">
-            <div class="agent-list-search flex-between">
+            <div
+              class="agent-list-search h-8 flex justify-between items-center gap-2"
+            >
               <fluent-icon icon="search" class="search-icon" size="16" />
               <input
                 ref="search"
@@ -39,15 +35,21 @@
           <template v-if="filteredTeams.length">
             <li v-for="team in filteredTeams" :key="team.id">
               <div class="team__list-item" @click="assignTeam(team)">
-                <span class="reports-option__title">{{ team.name }}</span>
+                <span
+                  class="my-0 ltr:ml-2 rtl:mr-2 text-slate-800 dark:text-slate-75"
+                >
+                  {{ team.name }}
+                </span>
               </div>
             </li>
           </template>
           <li v-else>
             <div class="team__list-item">
-              <span class="reports-option__title">{{
-                $t('BULK_ACTION.TEAMS.NO_TEAMS_AVAILABLE')
-              }}</span>
+              <span
+                class="my-0 ltr:ml-2 rtl:mr-2 text-slate-800 dark:text-slate-75"
+              >
+                {{ $t('BULK_ACTION.TEAMS.NO_TEAMS_AVAILABLE') }}
+              </span>
             </div>
           </li>
         </ul>
@@ -57,10 +59,8 @@
 </template>
 
 <script>
-import { mixin as clickaway } from 'vue-clickaway';
 import { mapGetters } from 'vuex';
 export default {
-  mixins: [clickaway],
   data() {
     return {
       query: '',
@@ -91,83 +91,60 @@ export default {
 
 <style scoped lang="scss">
 .bulk-action__teams {
-  background-color: var(--white);
-  border-radius: var(--border-radius-large);
-  border: 1px solid var(--s-50);
-  box-shadow: var(--shadow-dropdown-pane);
-  max-width: 75%;
-  position: absolute;
-  right: var(--space-small);
-  top: var(--space-larger);
-  transform-origin: top right;
-  width: auto;
-  z-index: var(--z-index-twenty);
-  min-width: var(--space-giga);
+  @apply max-w-[75%] absolute right-2 top-12 origin-top-right w-auto z-20 min-w-[15rem] bg-white dark:bg-slate-800 rounded-lg border border-solid border-slate-50 dark:border-slate-700 shadow-md;
   .header {
-    padding: var(--space-one);
+    @apply p-2.5;
 
     span {
-      font-size: var(--font-size-small);
-      font-weight: var(--font-weight-medium);
+      @apply text-sm font-medium;
     }
   }
 
   .container {
-    max-height: var(--space-giga);
-    overflow-y: auto;
+    @apply overflow-y-auto max-h-[15rem];
     .team__list-container {
-      height: 100%;
+      @apply h-full;
     }
     .agent-list-search {
-      padding: 0 var(--space-one);
-      border: 1px solid var(--s-100);
-      border-radius: var(--border-radius-medium);
-      background-color: var(--s-50);
+      @apply py-0 px-2.5 bg-slate-50 dark:bg-slate-900 border border-solid border-slate-100 dark:border-slate-600/70 rounded-md;
       .search-icon {
-        color: var(--s-400);
+        @apply text-slate-400 dark:text-slate-200;
       }
 
       .agent--search_input {
-        border: 0;
-        font-size: var(--font-size-mini);
-        margin: 0;
-        background-color: transparent;
-        height: unset;
+        @apply border-0 text-xs m-0 dark:bg-transparent bg-transparent w-full h-[unset];
       }
     }
   }
   .triangle {
-    display: block;
-    z-index: var(--z-index-one);
-    position: absolute;
-    top: var(--space-minus-slab);
     right: var(--triangle-position);
-    text-align: left;
+    @apply block z-10 absolute text-left -top-3;
+
+    svg path {
+      @apply fill-white dark:fill-slate-800 stroke-slate-50 dark:stroke-slate-600/50;
+    }
   }
 }
 ul {
-  margin: 0;
-  list-style: none;
+  @apply m-0 list-none;
+
+  li {
+    &:last-child {
+      .agent-list-item {
+        @apply last:rounded-b-lg;
+      }
+    }
+  }
 }
 
 .team__list-item {
-  display: flex;
-  align-items: center;
-  padding: var(--space-one);
-  cursor: pointer;
-  &:hover {
-    background-color: var(--s-50);
-  }
+  @apply flex items-center p-2.5 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900;
   span {
-    font-size: var(--font-size-small);
+    @apply text-sm;
   }
 }
 
 .search-container {
-  padding: 0 var(--space-one);
-  position: sticky;
-  top: 0;
-  z-index: var(--z-index-twenty);
-  background-color: var(--white);
+  @apply py-0 px-2.5 sticky top-0 z-20 bg-white dark:bg-slate-800;
 }
 </style>

@@ -1,6 +1,7 @@
-import SettingsContent from '../Wrapper';
-import CannedHome from './Index';
 import { frontendURL } from '../../../../helper/URLHelper';
+
+const SettingsContent = () => import('../Wrapper.vue');
+const CannedHome = () => import('./Index.vue');
 
 export default {
   routes: [
@@ -15,13 +16,14 @@ export default {
       children: [
         {
           path: '',
-          name: 'canned_wrapper',
           redirect: 'list',
         },
         {
           path: 'list',
           name: 'canned_list',
-          roles: ['administrator', 'agent'],
+          meta: {
+            permissions: ['administrator', 'agent'],
+          },
           component: CannedHome,
         },
       ],

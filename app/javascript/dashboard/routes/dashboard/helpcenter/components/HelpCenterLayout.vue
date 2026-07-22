@@ -1,5 +1,5 @@
 <template>
-  <div class="row app-wrapper">
+  <div class="flex flex-grow-0 w-full h-full min-h-0 app-wrapper">
     <sidebar
       :route="currentRoute"
       @toggle-account-modal="toggleAccountModal"
@@ -7,21 +7,22 @@
       @open-key-shortcut-modal="toggleKeyShortcutModal"
       @close-key-shortcut-modal="closeKeyShortcutModal"
     />
-    <div class="secondary-sidebar">
-      <help-center-sidebar
-        v-if="showHelpCenterSidebar"
-        :header-title="headerTitle"
-        :portal-slug="selectedPortalSlug"
-        :locale-slug="selectedLocaleInPortal"
-        :sub-title="localeName(selectedLocaleInPortal)"
-        :accessible-menu-items="accessibleMenuItems"
-        :additional-secondary-menu-items="additionalSecondaryMenuItems"
-        @open-popover="openPortalPopover"
-        @open-modal="onClickOpenAddCategoryModal"
-      />
-    </div>
-    <section class="app-content columns">
-      <router-view />
+    <help-center-sidebar
+      v-if="showHelpCenterSidebar"
+      :header-title="headerTitle"
+      :portal-slug="selectedPortalSlug"
+      :locale-slug="selectedLocaleInPortal"
+      :sub-title="localeName(selectedLocaleInPortal)"
+      :accessible-menu-items="accessibleMenuItems"
+      :additional-secondary-menu-items="additionalSecondaryMenuItems"
+      @open-popover="openPortalPopover"
+      @open-modal="onClickOpenAddCategoryModal"
+    />
+    <section
+      v-if="isHelpCenterEnabled"
+      class="flex flex-1 h-full min-h-0 px-0 overflow-hidden bg-white dark:bg-slate-900"
+    >
+      <router-view @reload-locale="fetchPortalAndItsCategories" />
       <command-bar />
       <account-selector
         :show-account-modal="showAccountModal"
@@ -53,36 +54,48 @@
         @cancel="onClickCloseAddCategoryModal"
       />
     </section>
+    <upgrade-page v-else />
   </div>
 </template>
 <script>
 import { mapGetters } from 'vuex';
-
+import UpgradePage from './UpgradePage.vue';
 import { frontendURL } from '../../../../helper/URLHelper';
-import Sidebar from 'dashboard/components/layout/Sidebar';
+import Sidebar from 'dashboard/components/layout/Sidebar.vue';
 import { BUS_EVENTS } from 'shared/constants/busEvents';
 import PortalPopover from '../components/PortalPopover.vue';
 import HelpCenterSidebar from '../components/Sidebar/Sidebar.vue';
-import CommandBar from 'dashboard/routes/dashboard/commands/commandbar.vue';
-import WootKeyShortcutModal from 'dashboard/components/widgets/modal/WootKeyShortcutModal';
-import AccountSelector from 'dashboard/components/layout/sidebarComponents/AccountSelector';
-import NotificationPanel from 'dashboard/routes/dashboard/notifications/components/NotificationPanel';
-import uiSettingsMixin from 'dashboard/mixins/uiSettings';
+import WootKeyShortcutModal from 'dashboard/components/widgets/modal/WootKeyShortcutModal.vue';
+import AccountSelector from 'dashboard/components/layout/sidebarComponents/AccountSelector.vue';
+import NotificationPanel from 'dashboard/routes/dashboard/notifications/components/NotificationPanel.vue';
+import { useUISettings } from 'dashboard/composables/useUISettings';
 import portalMixin from '../mixins/portalMixin';
-import AddCategory from '../pages/categories/AddCategory';
+import AddCategory from '../pages/categories/AddCategory.vue';
+import { FEATURE_FLAGS } from 'dashboard/featureFlags';
+const CommandBar = () =>
+  import('dashboard/routes/dashboard/commands/commandbar.vue');
 
 export default {
   components: {
-    Sidebar,
-    HelpCenterSidebar,
+    AccountSelector,
+    AddCategory,
     CommandBar,
-    WootKeyShortcutModal,
+    HelpCenterSidebar,
     NotificationPanel,
     PortalPopover,
-    AddCategory,
-    AccountSelector,
+    Sidebar,
+    UpgradePage,
+    WootKeyShortcutModal,
   },
-  mixins: [portalMixin, uiSettingsMixin],
+  mixins: [portalMixin],
+  setup() {
+    const { uiSettings, updateUISettings } = useUISettings();
+
+    return {
+      uiSettings,
+      updateUISettings,
+    };
+  },
   data() {
     return {
       isOnDesktop: true,
@@ -102,14 +115,25 @@ export default {
       categories: 'categories/allCategories',
       meta: 'portals/getMeta',
       isFetching: 'portals/isFetchingPortals',
+      isFeatureEnabledonAccount: 'accounts/isFeatureEnabledonAccount',
     }),
+
+    isHelpCenterEnabled() {
+      return this.isFeatureEnabledonAccount(
+        this.accountId,
+        FEATURE_FLAGS.HELP_CENTER
+      );
+    },
     isSidebarOpen() {
-      const {
-        show_help_center_secondary_sidebar: showSecondarySidebar,
-      } = this.uiSettings;
+      const { show_help_center_secondary_sidebar: showSecondarySidebar } =
+        this.uiSettings;
       return showSecondarySidebar;
     },
     showHelpCenterSidebar() {
+      if (!this.isHelpCenterEnabled) {
+        return false;
+      }
+
       return this.portals.length === 0 ? false : this.isSidebarOpen;
     },
     selectedPortal() {
@@ -209,7 +233,9 @@ export default {
           key: 'category',
           children: this.categories.map(category => ({
             id: category.id,
-            label: category.name,
+            label: category.icon
+              ? `${category.icon} ${category.name}`
+              : category.name,
             count: category.meta.articles_count,
             truncateLabel: true,
             toState: frontendURL(
@@ -248,7 +274,7 @@ export default {
   },
 
   mounted() {
-    bus.$on(BUS_EVENTS.TOGGLE_SIDEMENU, this.toggleSidebar);
+    this.$emitter.on(BUS_EVENTS.TOGGLE_SIDEMENU, this.toggleSidebar);
 
     const slug = this.$route.params.portalSlug;
     if (slug) this.lastActivePortalSlug = slug;
@@ -256,7 +282,7 @@ export default {
     this.fetchPortalAndItsCategories();
   },
   beforeDestroy() {
-    bus.$off(BUS_EVENTS.TOGGLE_SIDEMENU, this.toggleSidebar);
+    this.$emitter.off(BUS_EVENTS.TOGGLE_SIDEMENU, this.toggleSidebar);
   },
   updated() {
     const slug = this.$route.params.portalSlug;

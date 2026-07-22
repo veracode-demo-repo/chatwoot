@@ -31,10 +31,9 @@
 <script>
 import DyteAPI from 'dashboard/api/integrations/dyte';
 import { buildDyteURL } from 'shared/helpers/IntegrationHelper';
-import alertMixin from 'shared/mixins/alertMixin';
+import { useAlert } from 'dashboard/composables';
 
 export default {
-  mixins: [alertMixin],
   props: {
     messageId: {
       type: Number,
@@ -57,12 +56,11 @@ export default {
     async joinTheCall() {
       this.isLoading = true;
       try {
-        const {
-          data: { authResponse: { authToken } = {} } = {},
-        } = await DyteAPI.addParticipantToMeeting(this.messageId);
+        const { data: { authResponse: { authToken } = {} } = {} } =
+          await DyteAPI.addParticipantToMeeting(this.messageId);
         this.dyteAuthToken = authToken;
       } catch (err) {
-        this.showAlert(this.$t('INTEGRATION_SETTINGS.DYTE.JOIN_ERROR'));
+        useAlert(this.$t('INTEGRATION_SETTINGS.DYTE.JOIN_ERROR'));
       } finally {
         this.isLoading = false;
       }
@@ -97,7 +95,7 @@ export default {
   button {
     position: absolute;
     top: var(--space-smaller);
-    right: 16rem;
+    right: 10rem;
   }
 }
 </style>

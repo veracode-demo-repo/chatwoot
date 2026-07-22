@@ -1,6 +1,6 @@
-import SettingsContent from '../Wrapper';
-import AttributesHome from './Index';
 import { frontendURL } from '../../../../helper/URLHelper';
+const SettingsContent = () => import('../Wrapper.vue');
+const AttributesHome = () => import('./Index.vue');
 
 export default {
   routes: [
@@ -15,14 +15,15 @@ export default {
       children: [
         {
           path: '',
-          name: 'attributes_wrapper',
           redirect: 'list',
         },
         {
           path: 'list',
           name: 'attributes_list',
           component: AttributesHome,
-          roles: ['administrator'],
+          meta: {
+            permissions: ['administrator'],
+          },
         },
       ],
     },

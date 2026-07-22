@@ -1,7 +1,7 @@
 <template>
-  <div class="contact--profile">
-    <div class="contact--info">
-      <div class="contact-info--header">
+  <div class="relative items-center w-full p-4 bg-white dark:bg-slate-900">
+    <div class="flex flex-col w-full gap-2 text-left rtl:text-right">
+      <div class="flex flex-row justify-between">
         <thumbnail
           v-if="showAvatar"
           :src="contact.thumbnail"
@@ -12,46 +12,50 @@
         <woot-button
           v-if="showCloseButton"
           :icon="closeIconName"
-          class="clear secondary close-button--rtl"
+          class="clear secondary rtl:rotate-180"
           @click="onPanelToggle"
         />
       </div>
 
-      <div class="contact--details">
-        <div v-if="showAvatar" class="contact--name-wrap">
-          <h3 class="sub-block-title contact--name">
+      <div class="flex flex-col items-start gap-1.5 min-w-0 w-full">
+        <div v-if="showAvatar" class="flex items-start w-full min-w-0 gap-2">
+          <h3
+            class="flex-shrink max-w-full min-w-0 my-0 text-base capitalize break-words text-slate-800 dark:text-slate-100"
+          >
             {{ contact.name }}
           </h3>
-          <fluent-icon
-            v-if="contact.created_at"
-            v-tooltip="
-              `${$t('CONTACT_PANEL.CREATED_AT_LABEL')} ${dynamicTime(
-                contact.created_at
-              )}`
-            "
-            icon="info"
-            size="14"
-          />
-          <a
-            :href="contactProfileLink"
-            class="fs-default"
-            target="_blank"
-            rel="noopener nofollow noreferrer"
-          >
-            <woot-button
-              size="tiny"
-              icon="open"
-              variant="clear"
-              color-scheme="secondary"
+          <div class="flex flex-row items-center gap-1">
+            <fluent-icon
+              v-if="contact.created_at"
+              v-tooltip.left="
+                `${$t('CONTACT_PANEL.CREATED_AT_LABEL')} ${dynamicTime(
+                  contact.created_at
+                )}`
+              "
+              icon="info"
+              size="14"
+              class="mt-0.5"
             />
-          </a>
+            <a
+              :href="contactProfileLink"
+              class="text-base"
+              target="_blank"
+              rel="noopener nofollow noreferrer"
+            >
+              <woot-button
+                size="tiny"
+                icon="open"
+                variant="clear"
+                color-scheme="secondary"
+              />
+            </a>
+          </div>
         </div>
 
-        <p v-if="additionalAttributes.description" class="contact--bio">
+        <p v-if="additionalAttributes.description" class="break-words mb-0.5">
           {{ additionalAttributes.description }}
         </p>
-        <social-icons :social-profiles="socialProfiles" />
-        <div class="contact--metadata">
+        <div class="flex flex-col items-start w-full gap-2">
           <contact-info-row
             :href="contact.email ? `mailto:${contact.email}` : ''"
             :value="contact.email"
@@ -88,13 +92,13 @@
             emoji="🌍"
             :title="$t('CONTACT_PANEL.LOCATION')"
           />
+          <social-icons :social-profiles="socialProfiles" />
         </div>
       </div>
-      <div class="contact-actions">
+      <div class="flex items-center w-full mt-0.5 gap-2">
         <woot-button
           v-tooltip="$t('CONTACT_PANEL.NEW_MESSAGE')"
           title="$t('CONTACT_PANEL.NEW_MESSAGE')"
-          class="new-message"
           icon="chat"
           size="small"
           @click="toggleConversationModal"
@@ -102,7 +106,6 @@
         <woot-button
           v-tooltip="$t('EDIT_CONTACT.BUTTON_LABEL')"
           title="$t('EDIT_CONTACT.BUTTON_LABEL')"
-          class="edit-contact"
           icon="edit"
           variant="smooth"
           size="small"
@@ -111,7 +114,6 @@
         <woot-button
           v-tooltip="$t('CONTACT_PANEL.MERGE_CONTACT')"
           title="$t('CONTACT_PANEL.MERGE_CONTACT')"
-          class="merge-contact"
           icon="merge"
           variant="smooth"
           size="small"
@@ -123,7 +125,6 @@
           v-if="isAdmin"
           v-tooltip="$t('DELETE_CONTACT.BUTTON_LABEL')"
           title="$t('DELETE_CONTACT.BUTTON_LABEL')"
-          class="delete-contact"
           icon="delete"
           variant="smooth"
           size="small"
@@ -165,19 +166,23 @@
   </div>
 </template>
 <script>
-import { mixin as clickaway } from 'vue-clickaway';
-import timeMixin from 'dashboard/mixins/time';
-import ContactInfoRow from './ContactInfoRow';
-import Thumbnail from 'dashboard/components/widgets/Thumbnail.vue';
-import SocialIcons from './SocialIcons';
-
-import EditContact from './EditContact';
-import NewConversation from './NewConversation';
-import ContactMergeModal from 'dashboard/modules/contact/ContactMergeModal';
-import alertMixin from 'shared/mixins/alertMixin';
-import adminMixin from '../../../../mixins/isAdmin';
 import { mapGetters } from 'vuex';
+import { useAlert } from 'dashboard/composables';
+import { dynamicTime } from 'shared/helpers/timeHelper';
+import { useAdmin } from 'dashboard/composables/useAdmin';
+import ContactInfoRow from './ContactInfoRow.vue';
+import Thumbnail from 'dashboard/components/widgets/Thumbnail.vue';
+import SocialIcons from './SocialIcons.vue';
+import EditContact from './EditContact.vue';
+import NewConversation from './NewConversation.vue';
+import ContactMergeModal from 'dashboard/modules/contact/ContactMergeModal.vue';
 import { getCountryFlag } from 'dashboard/helper/flag';
+import { BUS_EVENTS } from 'shared/constants/busEvents';
+import {
+  isAConversationRoute,
+  isAInboxViewRoute,
+  getConversationDashboardRoute,
+} from '../../../../helper/routeHelpers';
 
 export default {
   components: {
@@ -188,7 +193,6 @@ export default {
     NewConversation,
     ContactMergeModal,
   },
-  mixins: [alertMixin, adminMixin, clickaway, timeMixin],
   props: {
     contact: {
       type: Object,
@@ -210,6 +214,12 @@ export default {
       type: String,
       default: 'chevron-right',
     },
+  },
+  setup() {
+    const { isAdmin } = useAdmin();
+    return {
+      isAdmin,
+    };
   },
   data() {
     return {
@@ -254,6 +264,7 @@ export default {
     },
   },
   methods: {
+    dynamicTime,
     toggleMergeModal() {
       this.showMergeModal = !this.showMergeModal;
     },
@@ -265,6 +276,10 @@ export default {
     },
     toggleConversationModal() {
       this.showConversationModal = !this.showConversationModal;
+      this.$emitter.emit(
+        BUS_EVENTS.NEW_CONVERSATION_MODAL,
+        this.showConversationModal
+      );
     },
     toggleDeleteModal() {
       this.showDeleteModal = !this.showDeleteModal;
@@ -290,12 +305,23 @@ export default {
       try {
         await this.$store.dispatch('contacts/delete', id);
         this.$emit('panel-close');
-        this.showAlert(this.$t('DELETE_CONTACT.API.SUCCESS_MESSAGE'));
-        if (this.$route.name !== 'contacts_dashboard') {
-          this.$router.push({ name: 'contacts_dashboard' });
+        useAlert(this.$t('DELETE_CONTACT.API.SUCCESS_MESSAGE'));
+
+        if (isAConversationRoute(this.$route.name)) {
+          this.$router.push({
+            name: getConversationDashboardRoute(this.$route.name),
+          });
+        } else if (isAInboxViewRoute(this.$route.name)) {
+          this.$router.push({
+            name: 'inbox_view',
+          });
+        } else if (this.$route.name !== 'contacts_dashboard') {
+          this.$router.push({
+            name: 'contacts_dashboard',
+          });
         }
       } catch (error) {
-        this.showAlert(
+        useAlert(
           error.message
             ? error.message
             : this.$t('DELETE_CONTACT.API.ERROR_MESSAGE')
@@ -308,76 +334,3 @@ export default {
   },
 };
 </script>
-
-<style scoped lang="scss">
-.contact--profile {
-  position: relative;
-  align-items: flex-start;
-  padding: var(--space-normal);
-}
-
-.contact--details {
-  margin-top: var(--space-small);
-  width: 100%;
-}
-
-.contact--info {
-  text-align: left;
-}
-
-.contact-info--header {
-  display: flex;
-  justify-content: space-between;
-  flex-direction: row;
-}
-
-.contact--name-wrap {
-  display: flex;
-  align-items: center;
-  margin-bottom: var(--space-small);
-}
-
-.contact--name {
-  text-transform: capitalize;
-  white-space: normal;
-  margin: 0 var(--space-smaller) 0 var(--space-smaller);
-
-  a {
-    color: var(--color-body);
-  }
-}
-
-.contact--metadata {
-  margin-bottom: var(--space-slab);
-}
-
-.contact-actions {
-  margin-top: var(--space-small);
-}
-
-.contact-actions {
-  display: flex;
-  align-items: center;
-  width: 100%;
-
-  .new-message,
-  .edit-contact,
-  .merge-contact,
-  .delete-contact {
-    margin-right: var(--space-small);
-  }
-}
-.merge-summary--card {
-  padding: var(--space-normal);
-}
-
-.contact--bio {
-  word-wrap: break-word;
-}
-
-.button--contact-menu {
-  position: absolute;
-  right: var(--space-normal);
-  top: 0;
-}
-</style>

@@ -1,9 +1,11 @@
 <template>
-  <div class="column content-box">
-    <!-- List Canned Response -->
-    <div class="row">
-      <div class="small-8 columns with-right-space">
-        <p v-if="!inboxesList.length" class="no-items-error-message">
+  <div class="flex-1 overflow-auto">
+    <div class="flex flex-row gap-4 p-8">
+      <div class="w-full lg:w-3/5">
+        <p
+          v-if="!inboxesList.length"
+          class="flex flex-col items-center justify-center h-full"
+        >
           {{ $t('INBOX_MGMT.LIST.404') }}
           <router-link
             v-if="isAdmin"
@@ -48,9 +50,7 @@
                 <span v-if="item.channel_type === 'Channel::Whatsapp'">
                   Whatsapp
                 </span>
-                <span v-if="item.channel_type === 'Channel::Sms'">
-                  Sms
-                </span>
+                <span v-if="item.channel_type === 'Channel::Sms'"> Sms </span>
                 <span v-if="item.channel_type === 'Channel::Email'">
                   Email
                 </span>
@@ -98,7 +98,7 @@
         </table>
       </div>
 
-      <div class="small-4 columns">
+      <div class="hidden w-1/3 lg:block">
         <span
           v-dompurify-html="
             useInstallationName(
@@ -132,8 +132,9 @@
 </template>
 <script>
 import { mapGetters } from 'vuex';
-import Settings from './Settings';
-import adminMixin from '../../../../mixins/isAdmin';
+import { useAlert } from 'dashboard/composables';
+import { useAdmin } from 'dashboard/composables/useAdmin';
+import Settings from './Settings.vue';
 import accountMixin from '../../../../mixins/account';
 import globalConfigMixin from 'shared/mixins/globalConfigMixin';
 
@@ -141,7 +142,13 @@ export default {
   components: {
     Settings,
   },
-  mixins: [adminMixin, accountMixin, globalConfigMixin],
+  mixins: [accountMixin, globalConfigMixin],
+  setup() {
+    const { isAdmin } = useAdmin();
+    return {
+      isAdmin,
+    };
+  },
   data() {
     return {
       loading: {},
@@ -194,15 +201,9 @@ export default {
     async deleteInbox({ id }) {
       try {
         await this.$store.dispatch('inboxes/delete', id);
-        bus.$emit(
-          'newToastMessage',
-          this.$t('INBOX_MGMT.DELETE.API.SUCCESS_MESSAGE')
-        );
+        useAlert(this.$t('INBOX_MGMT.DELETE.API.SUCCESS_MESSAGE'));
       } catch (error) {
-        bus.$emit(
-          'newToastMessage',
-          this.$t('INBOX_MGMT.DELETE.API.ERROR_MESSAGE')
-        );
+        useAlert(this.$t('INBOX_MGMT.DELETE.API.ERROR_MESSAGE'));
       }
     },
 

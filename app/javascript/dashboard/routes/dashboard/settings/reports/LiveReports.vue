@@ -1,9 +1,11 @@
 <template>
-  <div class="column content-box">
-    <div class="row">
-      <div class="column small-12 medium-8 conversation-metric">
+  <div class="flex-1 overflow-auto p-4">
+    <div class="flex flex-col md:flex-row items-center">
+      <div
+        class="flex-1 w-full max-w-full md:w-[65%] md:max-w-[65%] conversation-metric"
+      >
         <metric-card
-          :header="this.$t('OVERVIEW_REPORTS.ACCOUNT_CONVERSATIONS.HEADER')"
+          :header="$t('OVERVIEW_REPORTS.ACCOUNT_CONVERSATIONS.HEADER')"
           :is-loading="uiFlags.isFetchingAccountConversationMetric"
           :loading-message="
             $t('OVERVIEW_REPORTS.ACCOUNT_CONVERSATIONS.LOADING_MESSAGE')
@@ -12,7 +14,7 @@
           <div
             v-for="(metric, name, index) in conversationMetrics"
             :key="index"
-            class="metric-content column"
+            class="metric-content flex-1 min-w-0"
           >
             <h3 class="heading">
               {{ name }}
@@ -21,12 +23,12 @@
           </div>
         </metric-card>
       </div>
-      <div class="column small-12 medium-4">
-        <metric-card :header="this.$t('OVERVIEW_REPORTS.AGENT_STATUS.HEADER')">
+      <div class="flex-1 w-full max-w-full md:w-[35%] md:max-w-[35%]">
+        <metric-card :header="$t('OVERVIEW_REPORTS.AGENT_STATUS.HEADER')">
           <div
             v-for="(metric, name, index) in agentStatusMetrics"
             :key="index"
-            class="metric-content column"
+            class="metric-content flex-1 min-w-0"
           >
             <h3 class="heading">
               {{ name }}
@@ -36,10 +38,8 @@
         </metric-card>
       </div>
     </div>
-    <div class="row">
-      <metric-card
-        :header="this.$t('OVERVIEW_REPORTS.CONVERSATION_HEATMAP.HEADER')"
-      >
+    <div class="max-w-full flex flex-wrap flex-row ml-auto mr-auto">
+      <metric-card :header="$t('OVERVIEW_REPORTS.CONVERSATION_HEATMAP.HEADER')">
         <template #control>
           <woot-button
             icon="arrow-download"
@@ -57,10 +57,8 @@
         />
       </metric-card>
     </div>
-    <div class="row">
-      <metric-card
-        :header="this.$t('OVERVIEW_REPORTS.AGENT_CONVERSATIONS.HEADER')"
-      >
+    <div class="max-w-full flex flex-wrap flex-row ml-auto mr-auto">
+      <metric-card :header="$t('OVERVIEW_REPORTS.AGENT_CONVERSATIONS.HEADER')">
         <agent-table
           :agents="agents"
           :agent-metrics="agentConversationMetric"
@@ -74,10 +72,10 @@
 </template>
 <script>
 import { mapGetters } from 'vuex';
-import AgentTable from './components/overview/AgentTable';
-import MetricCard from './components/overview/MetricCard';
+import AgentTable from './components/overview/AgentTable.vue';
+import MetricCard from './components/overview/MetricCard.vue';
 import { OVERVIEW_METRICS } from './constants';
-import ReportHeatmap from './components/Heatmap';
+import ReportHeatmap from './components/Heatmap.vue';
 
 import endOfDay from 'date-fns/endOfDay';
 import getUnixTime from 'date-fns/getUnixTime';
@@ -130,7 +128,7 @@ export default {
     this.$store.dispatch('agents/get');
     this.fetchAllData();
 
-    bus.$on('fetch_overview_reports', () => {
+    this.$emitter.on('fetch_overview_reports', () => {
       this.fetchAllData();
     });
   },

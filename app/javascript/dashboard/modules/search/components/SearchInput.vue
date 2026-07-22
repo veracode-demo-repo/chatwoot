@@ -8,7 +8,9 @@
     >
       <div class="search-input">
         <fluent-icon icon="search" size="14px" class="search--icon" />
-        <span class="text-ellipsis search-placeholder">
+        <span
+          class="text-ellipsis overflow-hidden whitespace-nowrap search-placeholder"
+        >
           {{ $t('CONVERSATION.SEARCH_MESSAGES') }}
         </span>
       </div>
@@ -32,20 +34,16 @@ export default {
 </script>
 <style lang="scss" scoped>
 .search-input-box {
-  padding: var(--space-small);
+  @apply p-2;
 }
 .search--icon {
-  flex-shrink: 0;
-  color: var(--s-500);
+  @apply flex-shrink-0 text-slate-500 dark:text-slate-300;
 }
 .search-placeholder {
-  color: var(--s-500);
+  @apply text-slate-500 dark:text-slate-300;
 }
 
 .search-input {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: var(--space-smaller);
+  @apply flex justify-center items-center gap-1;
 }
 </style>

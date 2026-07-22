@@ -120,13 +120,30 @@ export const generateConditionOptions = (options, key = 'id') => {
   });
 };
 
-export const getActionOptions = ({ agents, teams, labels, type }) => {
+// Add the "None" option to the agent list
+export const addNoneToList = agents => [
+  {
+    id: 'nil',
+    name: 'None',
+  },
+  ...(agents || []),
+];
+
+export const getActionOptions = ({
+  agents,
+  teams,
+  labels,
+  slaPolicies,
+  type,
+}) => {
   const actionsMap = {
-    assign_agent: agents,
-    assign_team: teams,
+    assign_agent: addNoneToList(agents),
+    assign_team: addNoneToList(teams),
     send_email_to_team: teams,
     add_label: generateConditionOptions(labels, 'title'),
+    remove_label: generateConditionOptions(labels, 'title'),
     change_priority: PRIORITY_CONDITION_VALUES,
+    add_sla: slaPolicies,
   };
   return actionsMap[type];
 };
@@ -250,7 +267,9 @@ export const isCustomAttribute = (attrs, key) => {
 };
 
 export const generateCustomAttributes = (
+  // eslint-disable-next-line default-param-last
   conversationAttributes = [],
+  // eslint-disable-next-line default-param-last
   contactAttributes = [],
   conversationlabel,
   contactlabel

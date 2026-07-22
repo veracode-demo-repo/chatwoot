@@ -15,7 +15,7 @@
 
 <script>
 import { BUS_EVENTS } from 'shared/constants/busEvents';
-import SnackbarItem from './Item';
+import SnackbarItem from './Item.vue';
 
 export default {
   components: { SnackbarItem },
@@ -33,13 +33,13 @@ export default {
   },
 
   mounted() {
-    bus.$on(BUS_EVENTS.SHOW_TOAST, this.onNewToastMessage);
+    this.$emitter.on(BUS_EVENTS.SHOW_TOAST, this.onNewToastMessage);
   },
   beforeDestroy() {
-    bus.$off(BUS_EVENTS.SHOW_TOAST, this.onNewToastMessage);
+    this.$emitter.off(BUS_EVENTS.SHOW_TOAST, this.onNewToastMessage);
   },
   methods: {
-    onNewToastMessage(message, action) {
+    onNewToastMessage({ message, action }) {
       this.snackbarAlertMessages.push({
         key: new Date().getTime(),
         message,

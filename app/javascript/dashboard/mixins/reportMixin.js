@@ -2,50 +2,50 @@ import { mapGetters } from 'vuex';
 import { formatTime } from '@chatwoot/utils';
 
 export default {
+  props: {
+    accountSummaryKey: {
+      type: String,
+      default: 'getAccountSummary',
+    },
+  },
   computed: {
     ...mapGetters({
-      accountSummary: 'getAccountSummary',
       accountReport: 'getAccountReports',
     }),
-    calculateTrend() {
-      return metric_key => {
-        if (!this.accountSummary.previous[metric_key]) return 0;
-        return Math.round(
-          ((this.accountSummary[metric_key] -
-            this.accountSummary.previous[metric_key]) /
-            this.accountSummary.previous[metric_key]) *
-            100
-        );
-      };
+    accountSummary() {
+      return this.$store.getters[this.accountSummaryKey];
     },
-    displayMetric() {
-      return metric_key => {
-        if (this.isAverageMetricType(metric_key)) {
-          return formatTime(this.accountSummary[metric_key]);
-        }
-        return this.accountSummary[metric_key];
-      };
+  },
+  methods: {
+    calculateTrend(key) {
+      if (!this.accountSummary.previous[key]) return 0;
+      const diff = this.accountSummary[key] - this.accountSummary.previous[key];
+      return Math.round((diff / this.accountSummary.previous[key]) * 100);
     },
-    displayInfoText() {
-      return metric_key => {
-        if (this.metrics[this.currentSelection].KEY !== metric_key) {
-          return '';
-        }
-        if (this.isAverageMetricType(metric_key)) {
-          const total = this.accountReport.data
-            .map(item => item.count)
-            .reduce((prev, curr) => prev + curr, 0);
-          return `${this.metrics[this.currentSelection].INFO_TEXT} ${total}`;
-        }
+    displayMetric(key) {
+      if (this.isAverageMetricType(key)) {
+        return formatTime(this.accountSummary[key]);
+      }
+      return Number(this.accountSummary[key] || '').toLocaleString();
+    },
+    displayInfoText(key) {
+      if (this.metrics[this.currentSelection].KEY !== key) {
         return '';
-      };
+      }
+      if (this.isAverageMetricType(key)) {
+        const total = this.accountReport.data
+          .map(item => item.count)
+          .reduce((prev, curr) => prev + curr, 0);
+        return `${this.metrics[this.currentSelection].INFO_TEXT} ${total}`;
+      }
+      return '';
     },
-    isAverageMetricType() {
-      return metric_key => {
-        return ['avg_first_response_time', 'avg_resolution_time'].includes(
-          metric_key
-        );
-      };
+    isAverageMetricType(key) {
+      return [
+        'avg_first_response_time',
+        'avg_resolution_time',
+        'reply_time',
+      ].includes(key);
     },
   },
 };

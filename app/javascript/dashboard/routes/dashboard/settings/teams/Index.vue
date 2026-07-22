@@ -1,8 +1,11 @@
 <template>
-  <div class="column content-box">
-    <div class="row">
-      <div class="small-8 columns with-right-space ">
-        <p v-if="!teamsList.length" class="no-items-error-message">
+  <div class="flex-1 overflow-auto">
+    <div class="flex flex-row gap-4 p-8">
+      <div class="w-full md:w-3/5">
+        <p
+          v-if="!teamsList.length"
+          class="flex flex-col items-center justify-center h-full"
+        >
           {{ $t('TEAMS_SETTINGS.LIST.404') }}
           <router-link
             v-if="isAdmin"
@@ -53,7 +56,7 @@
         </table>
       </div>
 
-      <div class="small-4 columns">
+      <div class="hidden w-1/3 md:block">
         <span
           v-dompurify-html="
             $t('TEAMS_SETTINGS.SIDEBAR_TXT', {
@@ -79,13 +82,19 @@
 </template>
 <script>
 import { mapGetters } from 'vuex';
-import adminMixin from '../../../../mixins/isAdmin';
+import { useAlert } from 'dashboard/composables';
+import { useAdmin } from 'dashboard/composables/useAdmin';
 import accountMixin from '../../../../mixins/account';
-import alertMixin from 'shared/mixins/alertMixin';
 
 export default {
   components: {},
-  mixins: [adminMixin, accountMixin, alertMixin],
+  mixins: [accountMixin],
+  setup() {
+    const { isAdmin } = useAdmin();
+    return {
+      isAdmin,
+    };
+  },
   data() {
     return {
       loading: {},
@@ -122,9 +131,9 @@ export default {
     async deleteTeam({ id }) {
       try {
         await this.$store.dispatch('teams/delete', id);
-        this.showAlert(this.$t('TEAMS_SETTINGS.DELETE.API.SUCCESS_MESSAGE'));
+        useAlert(this.$t('TEAMS_SETTINGS.DELETE.API.SUCCESS_MESSAGE'));
       } catch (error) {
-        this.showAlert(this.$t('TEAMS_SETTINGS.DELETE.API.ERROR_MESSAGE'));
+        useAlert(this.$t('TEAMS_SETTINGS.DELETE.API.ERROR_MESSAGE'));
       }
     },
 

@@ -1,6 +1,6 @@
 <template>
   <modal :show.sync="show" :on-close="onClose">
-    <div class="column content-box">
+    <div class="flex flex-col h-auto overflow-auto">
       <woot-modal-header :header-title="$t('IMPORT_CONTACTS.TITLE')">
         <p>
           {{ $t('IMPORT_CONTACTS.DESC') }}
@@ -9,8 +9,8 @@
           }}</a>
         </p>
       </woot-modal-header>
-      <div class="row modal-content">
-        <div class="medium-12 columns">
+      <div class="flex flex-col p-8">
+        <div class="w-full">
           <label>
             <span>{{ $t('IMPORT_CONTACTS.FORM.LABEL') }}</span>
             <input
@@ -22,8 +22,8 @@
             />
           </label>
         </div>
-        <div class="modal-footer">
-          <div class="medium-12 columns">
+        <div class="flex flex-row justify-end w-full gap-2 px-0 py-2">
+          <div class="w-full">
             <woot-button
               :disabled="uiFlags.isCreating || !file"
               :loading="uiFlags.isCreating"
@@ -42,16 +42,15 @@
 </template>
 
 <script>
-import Modal from '../../../../components/Modal';
 import { mapGetters } from 'vuex';
-import alertMixin from 'shared/mixins/alertMixin';
+import { useAlert } from 'dashboard/composables';
 import { CONTACTS_EVENTS } from '../../../../helper/AnalyticsHelper/events';
+import Modal from '../../../../components/Modal.vue';
 
 export default {
   components: {
     Modal,
   },
-  mixins: [alertMixin],
   props: {
     onClose: {
       type: Function,
@@ -81,12 +80,10 @@ export default {
         if (!this.file) return;
         await this.$store.dispatch('contacts/import', this.file);
         this.onClose();
-        this.showAlert(this.$t('IMPORT_CONTACTS.SUCCESS_MESSAGE'));
+        useAlert(this.$t('IMPORT_CONTACTS.SUCCESS_MESSAGE'));
         this.$track(CONTACTS_EVENTS.IMPORT_SUCCESS);
       } catch (error) {
-        this.showAlert(
-          error.message || this.$t('IMPORT_CONTACTS.ERROR_MESSAGE')
-        );
+        useAlert(error.message || this.$t('IMPORT_CONTACTS.ERROR_MESSAGE'));
         this.$track(CONTACTS_EVENTS.IMPORT_FAILURE);
       }
     },

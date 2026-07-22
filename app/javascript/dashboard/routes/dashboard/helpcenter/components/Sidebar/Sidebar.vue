@@ -1,13 +1,20 @@
 <template>
-  <div class="main-nav secondary-menu">
+  <div
+    class="h-full overflow-auto w-60 flex flex-col bg-white dark:bg-slate-900 border-r dark:border-slate-700 rtl:border-r-0 rtl:border-l border-slate-50 text-sm"
+  >
     <sidebar-header
       :thumbnail-src="thumbnailSrc"
       :header-title="headerTitle"
       :sub-title="subTitle"
       :portal-link="portalLink"
+      class="px-4"
       @open-popover="openPortalPopover"
     />
-    <transition-group name="menu-list" tag="ul" class="menu vertical">
+    <transition-group
+      name="menu-list"
+      tag="ul"
+      class="py-2 px-4 list-none ml-0 mb-0"
+    >
       <secondary-nav-item
         v-for="menuItem in accessibleMenuItems"
         :key="menuItem.toState"
@@ -22,7 +29,7 @@
       <p
         v-if="!hasCategory"
         key="empty-category-nessage"
-        class="empty-text text-muted"
+        class="p-1.5 px-4 text-slate-300"
       >
         {{ $t('SIDEBAR.HELP_CENTER.CATEGORY_EMPTY_MESSAGE') }}
       </p>
@@ -31,8 +38,8 @@
 </template>
 
 <script>
-import SecondaryNavItem from 'dashboard/components/layout/sidebarComponents/SecondaryNavItem';
-import SidebarHeader from './SidebarHeader';
+import SecondaryNavItem from 'dashboard/components/layout/sidebarComponents/SecondaryNavItem.vue';
+import SidebarHeader from './SidebarHeader.vue';
 
 export default {
   components: {
@@ -69,9 +76,6 @@ export default {
       default: () => [],
     },
   },
-  data() {
-    return {};
-  },
   computed: {
     hasCategory() {
       return (
@@ -96,32 +100,3 @@ export default {
   },
 };
 </script>
-
-<style scoped lang="scss">
-@import '~dashboard/assets/scss/woot';
-.secondary-menu {
-  display: flex;
-  flex-direction: column;
-  background: var(--white);
-  border-right: 1px solid var(--s-50);
-  height: 100%;
-  width: var(--space-giga);
-  flex-shrink: 0;
-  overflow: hidden;
-  padding: var(--space-small);
-  position: unset;
-
-  &:hover {
-    overflow: auto;
-  }
-
-  .menu {
-    padding: var(--space-small);
-    overflow-y: auto;
-  }
-}
-
-.empty-text {
-  padding: var(--space-smaller) var(--space-normal);
-}
-</style>

@@ -16,7 +16,7 @@
 <script>
 import {
   fullSchema,
-  wootArticleWriterSetup,
+  buildEditor,
   EditorView,
   ArticleMarkdownSerializer,
   ArticleMarkdownTransformer,
@@ -24,34 +24,47 @@ import {
   Selection,
 } from '@chatwoot/prosemirror-schema';
 import { checkFileSizeLimit } from 'shared/helpers/FileHelper';
-import alertMixin from 'shared/mixins/alertMixin';
-import eventListenerMixins from 'shared/mixins/eventListenerMixins';
-import uiSettingsMixin from 'dashboard/mixins/uiSettings';
+import { useAlert } from 'dashboard/composables';
+import { useUISettings } from 'dashboard/composables/useUISettings';
+import keyboardEventListenerMixins from 'shared/mixins/keyboardEventListenerMixins';
 
 const MAXIMUM_FILE_UPLOAD_SIZE = 4; // in MB
 const createState = (
   content,
   placeholder,
+  // eslint-disable-next-line default-param-last
   plugins = [],
-  onImageUpload = () => {}
+  // eslint-disable-next-line default-param-last
+  methods = {},
+  enabledMenuOptions
 ) => {
   return EditorState.create({
     doc: new ArticleMarkdownTransformer(fullSchema).parse(content),
-    plugins: wootArticleWriterSetup({
+    plugins: buildEditor({
       schema: fullSchema,
       placeholder,
+      methods,
       plugins,
-      onImageUpload,
+      enabledMenuOptions,
     }),
   });
 };
 
 export default {
-  mixins: [eventListenerMixins, uiSettingsMixin, alertMixin],
+  mixins: [keyboardEventListenerMixins],
   props: {
     value: { type: String, default: '' },
     editorId: { type: String, default: '' },
     placeholder: { type: String, default: '' },
+    enabledMenuOptions: { type: Array, default: () => [] },
+  },
+  setup() {
+    const { uiSettings, updateUISettings } = useUISettings();
+
+    return {
+      uiSettings,
+      updateUISettings,
+    };
   },
   data() {
     return {
@@ -83,7 +96,8 @@ export default {
       this.value,
       this.placeholder,
       this.plugins,
-      this.openFileBrowser
+      { onImageUpload: this.openFileBrowser },
+      this.enabledMenuOptions
     );
   },
   mounted() {
@@ -102,7 +116,7 @@ export default {
       if (checkFileSizeLimit(file, MAXIMUM_FILE_UPLOAD_SIZE)) {
         this.uploadImageToStorage(file);
       } else {
-        this.showAlert(
+        useAlert(
           this.$t('HELP_CENTER.ARTICLE_EDITOR.IMAGE_UPLOAD.ERROR_FILE_SIZE', {
             size: MAXIMUM_FILE_UPLOAD_SIZE,
           })
@@ -121,13 +135,9 @@ export default {
         if (fileUrl) {
           this.onImageUploadStart(fileUrl);
         }
-        this.showAlert(
-          this.$t('HELP_CENTER.ARTICLE_EDITOR.IMAGE_UPLOAD.SUCCESS')
-        );
+        useAlert(this.$t('HELP_CENTER.ARTICLE_EDITOR.IMAGE_UPLOAD.SUCCESS'));
       } catch (error) {
-        this.showAlert(
-          this.$t('HELP_CENTER.ARTICLE_EDITOR.IMAGE_UPLOAD.ERROR')
-        );
+        useAlert(this.$t('HELP_CENTER.ARTICLE_EDITOR.IMAGE_UPLOAD.ERROR'));
       }
     },
     onImageUploadStart(fileUrl) {
@@ -152,7 +162,8 @@ export default {
         this.value,
         this.placeholder,
         this.plugins,
-        this.openFileBrowser
+        { onImageUpload: this.openFileBrowser },
+        this.enabledMenuOptions
       );
       this.editorView.updateState(this.state);
       this.focusEditorInputField();
@@ -230,8 +241,8 @@ export default {
 }
 
 .ProseMirror-woot-style {
-  min-height: 8rem;
-  max-height: 12rem;
+  min-height: 5rem;
+  max-height: 7.5rem;
   overflow: auto;
 }
 
@@ -241,6 +252,6 @@ export default {
   box-shadow: var(--shadow-large);
   border-radius: var(--border-radius-normal);
   border: 1px solid var(--color-border);
-  min-width: 40rem;
+  min-width: 25rem;
 }
 </style>

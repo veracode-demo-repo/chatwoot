@@ -1,5 +1,5 @@
 <template>
-  <div class="flex-container actions--container">
+  <div class="relative flex items-center gap-2 actions--container">
     <woot-button
       v-if="!currentChat.muted"
       v-tooltip="$t('CONTACT_PANEL.MUTE_CONTACT')"
@@ -37,10 +37,9 @@
 </template>
 <script>
 import { mapGetters } from 'vuex';
-import { mixin as clickaway } from 'vue-clickaway';
-import alertMixin from 'shared/mixins/alertMixin';
-import EmailTranscriptModal from './EmailTranscriptModal';
-import ResolveAction from '../../buttons/ResolveAction';
+import { useAlert } from 'dashboard/composables';
+import EmailTranscriptModal from './EmailTranscriptModal.vue';
+import ResolveAction from '../../buttons/ResolveAction.vue';
 import {
   CMD_MUTE_CONVERSATION,
   CMD_SEND_TRANSCRIPT,
@@ -52,7 +51,6 @@ export default {
     EmailTranscriptModal,
     ResolveAction,
   },
-  mixins: [alertMixin, clickaway],
   data() {
     return {
       showEmailActionsModal: false,
@@ -62,23 +60,23 @@ export default {
     ...mapGetters({ currentChat: 'getSelectedChat' }),
   },
   mounted() {
-    bus.$on(CMD_MUTE_CONVERSATION, this.mute);
-    bus.$on(CMD_UNMUTE_CONVERSATION, this.unmute);
-    bus.$on(CMD_SEND_TRANSCRIPT, this.toggleEmailActionsModal);
+    this.$emitter.on(CMD_MUTE_CONVERSATION, this.mute);
+    this.$emitter.on(CMD_UNMUTE_CONVERSATION, this.unmute);
+    this.$emitter.on(CMD_SEND_TRANSCRIPT, this.toggleEmailActionsModal);
   },
   destroyed() {
-    bus.$off(CMD_MUTE_CONVERSATION, this.mute);
-    bus.$off(CMD_UNMUTE_CONVERSATION, this.unmute);
-    bus.$off(CMD_SEND_TRANSCRIPT, this.toggleEmailActionsModal);
+    this.$emitter.off(CMD_MUTE_CONVERSATION, this.mute);
+    this.$emitter.off(CMD_UNMUTE_CONVERSATION, this.unmute);
+    this.$emitter.off(CMD_SEND_TRANSCRIPT, this.toggleEmailActionsModal);
   },
   methods: {
     mute() {
       this.$store.dispatch('muteConversation', this.currentChat.id);
-      this.showAlert(this.$t('CONTACT_PANEL.MUTED_SUCCESS'));
+      useAlert(this.$t('CONTACT_PANEL.MUTED_SUCCESS'));
     },
     unmute() {
       this.$store.dispatch('unmuteConversation', this.currentChat.id);
-      this.showAlert(this.$t('CONTACT_PANEL.UNMUTED_SUCCESS'));
+      useAlert(this.$t('CONTACT_PANEL.UNMUTED_SUCCESS'));
     },
     toggleEmailActionsModal() {
       this.showEmailActionsModal = !this.showEmailActionsModal;
@@ -87,31 +85,15 @@ export default {
 };
 </script>
 <style scoped lang="scss">
-.actions--container {
-  align-items: center;
-
-  .resolve-actions {
-    margin-left: var(--space-small);
-  }
-}
-
 .more--button {
-  align-items: center;
-  display: flex;
-  margin-left: var(--space-small);
-}
-
-.actions--container {
-  position: relative;
+  @apply items-center flex ml-2 rtl:ml-0 rtl:mr-2;
 }
 
 .dropdown-pane {
-  right: var(--space-minus-small);
-  top: 48px;
+  @apply -right-2 top-12;
 }
 
 .icon {
-  margin-right: var(--space-smaller);
-  min-width: var(--space-normal);
+  @apply mr-1 rtl:mr-0 rtl:ml-1 min-w-[1rem];
 }
 </style>

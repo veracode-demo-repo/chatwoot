@@ -1,8 +1,8 @@
 <template>
-  <div class="article-container">
+  <div class="flex w-full overflow-auto article-container">
     <div
-      class="edit-article--container"
-      :class="{ 'is-sidebar-open': showArticleSettings }"
+      class="flex-1 flex-shrink-0 px-6 overflow-auto"
+      :class="{ 'flex-grow-1 flex-shrink-0': showArticleSettings }"
     >
       <edit-article-header
         :back-button-label="$t('HELP_CENTER.HEADER.TITLES.ALL_ARTICLES')"
@@ -13,8 +13,9 @@
         @open="openArticleSettings"
         @close="closeArticleSettings"
         @show="showArticleInPortal"
+        @update-meta="updateMeta"
       />
-      <div v-if="isFetching" class="text-center p-normal fs-default h-full">
+      <div v-if="isFetching" class="h-full p-4 text-base text-center">
         <spinner size="" />
         <span>{{ $t('HELP_CENTER.EDIT_ARTICLE.LOADING') }}</span>
       </div>
@@ -31,6 +32,7 @@
       @save-article="saveArticle"
       @delete-article="openDeletePopup"
       @archive-article="archiveArticle"
+      @update-meta="updateMeta"
     />
     <woot-delete-modal
       :show.sync="showDeleteConfirmationPopup"
@@ -43,14 +45,15 @@
     />
   </div>
 </template>
+
 <script>
 import { mapGetters } from 'vuex';
-import EditArticleHeader from '../../components/Header/EditArticleHeader';
-import ArticleEditor from '../../components/ArticleEditor';
-import ArticleSettings from './ArticleSettings';
-import Spinner from 'shared/components/Spinner';
+import { useAlert } from 'dashboard/composables';
+import EditArticleHeader from '../../components/Header/EditArticleHeader.vue';
+import ArticleEditor from '../../components/ArticleEditor.vue';
+import ArticleSettings from './ArticleSettings.vue';
+import Spinner from 'shared/components/Spinner.vue';
 import portalMixin from '../../mixins/portalMixin';
-import alertMixin from 'shared/mixins/alertMixin';
 import wootConstants from 'dashboard/constants/globals';
 import { buildPortalArticleURL } from 'dashboard/helper/portalHelper';
 import { PORTALS_EVENTS } from '../../../../../helper/AnalyticsHelper/events';
@@ -63,7 +66,7 @@ export default {
     Spinner,
     ArticleSettings,
   },
-  mixins: [portalMixin, alertMixin],
+  mixins: [portalMixin],
   data() {
     return {
       isUpdating: false,
@@ -87,6 +90,9 @@ export default {
     selectedPortalSlug() {
       return this.$route.params.portalSlug;
     },
+    selectedLocale() {
+      return this.$route.params.locale;
+    },
     portalLink() {
       const slug = this.$route.params.portalSlug;
       return buildPortalArticleURL(
@@ -102,7 +108,11 @@ export default {
   },
   methods: {
     onClickGoBack() {
-      this.$router.push({ name: 'list_all_locale_articles' });
+      if (window.history.length > 2) {
+        this.$router.go(-1);
+      } else {
+        this.$router.push({ name: 'list_all_locale_articles' });
+      }
     },
     fetchArticleDetails() {
       this.$store.dispatch('articles/show', {
@@ -134,7 +144,7 @@ export default {
       } catch (error) {
         this.alertMessage =
           error?.message || this.$t('HELP_CENTER.EDIT_ARTICLE.API.ERROR');
-        this.showAlert(this.alertMessage);
+        useAlert(this.alertMessage);
       } finally {
         setTimeout(() => {
           this.isUpdating = false;
@@ -164,7 +174,7 @@ export default {
           error?.message ||
           this.$t('HELP_CENTER.DELETE_ARTICLE.API.ERROR_MESSAGE');
       } finally {
-        this.showAlert(this.alertMessage);
+        useAlert(this.alertMessage);
       }
     },
     async archiveArticle() {
@@ -180,8 +190,15 @@ export default {
         this.alertMessage =
           error?.message || this.$t('HELP_CENTER.ARCHIVE_ARTICLE.API.ERROR');
       } finally {
-        this.showAlert(this.alertMessage);
+        useAlert(this.alertMessage);
       }
+    },
+    updateMeta() {
+      const selectedPortalParam = {
+        portalSlug: this.selectedPortalSlug,
+        locale: this.selectedLocale,
+      };
+      return this.$store.dispatch('portals/show', selectedPortalParam);
     },
     openArticleSettings() {
       this.showArticleSettings = true;
@@ -198,24 +215,3 @@ export default {
   },
 };
 </script>
-
-<style lang="scss" scoped>
-.article-container {
-  display: flex;
-  padding: 0 var(--space-normal);
-  width: 100%;
-  flex: 1;
-  overflow: auto;
-
-  .edit-article--container {
-    flex: 1;
-    flex-shrink: 0;
-    overflow: auto;
-  }
-
-  .is-sidebar-open {
-    flex-grow: 1;
-    flex-shrink: 0;
-  }
-}
-</style>

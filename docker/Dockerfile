@@ -1,5 +1,5 @@
 # pre-build stage
-FROM ruby:3.2.2-alpine3.16 AS pre-builder
+FROM ruby:3.3.3-alpine3.19 AS pre-builder
 
 # ARG default to production settings
 # For development docker-compose file overrides ARGS
@@ -13,18 +13,21 @@ ENV RAILS_SERVE_STATIC_FILES ${RAILS_SERVE_STATIC_FILES}
 ARG RAILS_ENV=production
 ENV RAILS_ENV ${RAILS_ENV}
 
+ARG NODE_OPTIONS="--openssl-legacy-provider"
+ENV NODE_OPTIONS ${NODE_OPTIONS}
+
 ENV BUNDLE_PATH="/gems"
 
 RUN apk update && apk add --no-cache \
-    openssl \
-    tar \
-    build-base \
-    tzdata \
-    postgresql-dev \
-    postgresql-client \
-    nodejs \
-    yarn \
-    git \
+  openssl \
+  tar \
+  build-base \
+  tzdata \
+  postgresql-dev \
+  postgresql-client \
+  nodejs=20.15.1-r0 \
+  yarn \
+  git \
   && mkdir -p /var/app \
   && gem install bundler
 
@@ -64,13 +67,13 @@ RUN if [ "$RAILS_ENV" = "production" ]; then \
 RUN git rev-parse HEAD > /app/.git_sha
 
 # Remove unnecessary files
-RUN rm -rf /gems/ruby/3.2.0/cache/*.gem \
-  && find /gems/ruby/3.2.0/gems/ \( -name "*.c" -o -name "*.o" \) -delete \
+RUN rm -rf /gems/ruby/3.3.0/cache/*.gem \
+  && find /gems/ruby/3.3.0/gems/ \( -name "*.c" -o -name "*.o" \) -delete \
   && rm -rf .git \
   && rm .gitignore
 
 # final build stage
-FROM ruby:3.2.2-alpine3.16
+FROM ruby:3.3.3-alpine3.19
 
 
 ARG BUNDLE_WITHOUT="development:test"
@@ -92,16 +95,16 @@ ENV BUNDLE_PATH="/gems"
 
 RUN apk update && apk add --no-cache \
   build-base \
-    openssl \
-    tzdata \
-    postgresql-client \
-    imagemagick \
-    git \
-    vips \
+  openssl \
+  tzdata \
+  postgresql-client \
+  imagemagick \
+  git \
+  vips \
   && gem install bundler
 
 RUN if [ "$RAILS_ENV" != "production" ]; then \
-  apk add --no-cache nodejs yarn; \
+  apk add --no-cache nodejs-current yarn; \
   fi
 
 COPY --from=pre-builder /gems/ /gems/

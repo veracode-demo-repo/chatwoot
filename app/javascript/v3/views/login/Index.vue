@@ -1,21 +1,21 @@
 <template>
   <main
-    class="flex flex-col bg-woot-25 min-h-full w-full py-12 sm:px-6 lg:px-8 justify-center dark:bg-slate-900"
+    class="flex flex-col w-full min-h-screen py-20 bg-woot-25 sm:px-6 lg:px-8 dark:bg-slate-900"
   >
     <section class="max-w-5xl mx-auto">
       <img
         :src="globalConfig.logo"
         :alt="globalConfig.installationName"
-        class="mx-auto h-8 w-auto block dark:hidden"
+        class="block w-auto h-8 mx-auto dark:hidden"
       />
       <img
         v-if="globalConfig.logoDark"
         :src="globalConfig.logoDark"
         :alt="globalConfig.installationName"
-        class="mx-auto h-8 w-auto hidden dark:block"
+        class="hidden w-auto h-8 mx-auto dark:block"
       />
       <h2
-        class="mt-6 text-center text-3xl font-medium text-slate-900 dark:text-woot-50"
+        class="mt-6 text-3xl font-medium text-center text-slate-900 dark:text-woot-50"
       >
         {{
           useInstallationName($t('LOGIN.TITLE'), globalConfig.installationName)
@@ -23,17 +23,20 @@
       </h2>
       <p
         v-if="showSignupLink"
-        class="mt-3 text-center text-sm text-slate-600 dark:text-slate-400"
+        class="mt-3 text-sm text-center text-slate-600 dark:text-slate-400"
       >
         {{ $t('COMMON.OR') }}
-        <router-link to="auth/signup" class="text-link">
+        <router-link to="auth/signup" class="lowercase text-link">
           {{ $t('LOGIN.CREATE_NEW_ACCOUNT') }}
         </router-link>
       </p>
     </section>
     <section
-      class="sm:mx-auto mt-11 sm:w-full sm:max-w-lg bg-white dark:bg-slate-800 p-11 shadow sm:shadow-lg sm:rounded-lg"
-      :class="{ 'mb-8 mt-15': !showGoogleOAuth }"
+      class="bg-white shadow sm:mx-auto mt-11 sm:w-full sm:max-w-lg dark:bg-slate-800 p-11 sm:shadow-lg sm:rounded-lg"
+      :class="{
+        'mb-8 mt-15': !showGoogleOAuth,
+        'animate-wiggle': loginApi.hasErrored,
+      }"
     >
       <div v-if="!email">
         <GoogleOAuthButton v-if="showGoogleOAuth" />
@@ -43,6 +46,7 @@
             name="email_address"
             type="text"
             data-testid="email_input"
+            :tabindex="1"
             required
             :label="$t('LOGIN.EMAIL.LABEL')"
             :placeholder="$t('LOGIN.EMAIL.PLACEHOLDER')"
@@ -55,23 +59,25 @@
             name="password"
             data-testid="password_input"
             required
+            :tabindex="2"
             :label="$t('LOGIN.PASSWORD.LABEL')"
             :placeholder="$t('LOGIN.PASSWORD.PLACEHOLDER')"
             :has-error="$v.credentials.password.$error"
             @input="$v.credentials.password.$touch"
           >
             <p v-if="!globalConfig.disableUserProfileUpdate">
-              <router-link to="auth/reset/password" class="text-link">
+              <router-link
+                to="auth/reset/password"
+                class="text-sm text-link"
+                tabindex="4"
+              >
                 {{ $t('LOGIN.FORGOT_PASSWORD') }}
               </router-link>
             </p>
           </form-input>
           <submit-button
-            :disabled="
-              $v.credentials.email.$invalid ||
-                $v.credentials.password.$invalid ||
-                loginApi.showLoading
-            "
+            :disabled="loginApi.showLoading"
+            :tabindex="3"
             :button-text="$t('LOGIN.SUBMIT')"
             :loading="loginApi.showLoading"
           />
@@ -85,15 +91,16 @@
 </template>
 
 <script>
+import { useAlert } from 'dashboard/composables';
 import { required, email } from 'vuelidate/lib/validators';
 import globalConfigMixin from 'shared/mixins/globalConfigMixin';
-import SubmitButton from '../../components/Button/SubmitButton';
+import SubmitButton from '../../components/Button/SubmitButton.vue';
 import { mapGetters } from 'vuex';
 import { parseBoolean } from '@chatwoot/utils';
 import GoogleOAuthButton from '../../components/GoogleOauth/Button.vue';
 import FormInput from '../../components/Form/Input.vue';
 import { login } from '../../api/auth';
-import Spinner from 'shared/components/Spinner';
+import Spinner from 'shared/components/Spinner.vue';
 const ERROR_MESSAGES = {
   'no-account-found': 'LOGIN.OAUTH.NO_ACCOUNT_FOUND',
   'business-account-only': 'LOGIN.OAUTH.BUSINESS_ACCOUNTS_ONLY',
@@ -126,6 +133,7 @@ export default {
       loginApi: {
         message: '',
         showLoading: false,
+        hasErrored: false,
       },
       error: '',
     };
@@ -156,9 +164,9 @@ export default {
     }
     if (this.authError) {
       const message = ERROR_MESSAGES[this.authError] ?? 'LOGIN.API.UNAUTH';
-      this.showAlert(this.$t(message));
+      useAlert(this.$t(message));
       // wait for idle state
-      window.requestIdleCallback(() => {
+      this.requestIdleCallbackPolyfill(() => {
         // Remove the error query param from the url
         const { query } = this.$route;
         this.$router.replace({ query: { ...query, error: undefined } });
@@ -166,14 +174,34 @@ export default {
     }
   },
   methods: {
-    showAlert(message) {
+    // TODO: Remove this when Safari gets wider support
+    // Ref: https://caniuse.com/requestidlecallback
+    //
+    requestIdleCallbackPolyfill(callback) {
+      if (window.requestIdleCallback) {
+        window.requestIdleCallback(callback);
+      } else {
+        // Fallback for safari
+        // Using a delay of 0 allows the callback to be executed asynchronously
+        // in the next available event loop iteration, similar to requestIdleCallback
+        setTimeout(callback, 0);
+      }
+    },
+    showAlertMessage(message) {
       // Reset loading, current selected agent
       this.loginApi.showLoading = false;
       this.loginApi.message = message;
-      bus.$emit('newToastMessage', this.loginApi.message);
+      useAlert(this.loginApi.message);
     },
     submitLogin() {
+      if (this.$v.credentials.email.$invalid && !this.email) {
+        this.showAlertMessage(this.$t('LOGIN.EMAIL.ERROR'));
+        return;
+      }
+
+      this.loginApi.hasErrored = false;
       this.loginApi.showLoading = true;
+
       const credentials = {
         email: this.email
           ? decodeURIComponent(this.email)
@@ -186,14 +214,17 @@ export default {
 
       login(credentials)
         .then(() => {
-          this.showAlert(this.$t('LOGIN.API.SUCCESS_MESSAGE'));
+          this.showAlertMessage(this.$t('LOGIN.API.SUCCESS_MESSAGE'));
         })
         .catch(response => {
           // Reset URL Params if the authentication is invalid
           if (this.email) {
             window.location = '/app/login';
           }
-          this.showAlert(response?.message || this.$t('LOGIN.API.UNAUTH'));
+          this.loginApi.hasErrored = true;
+          this.showAlertMessage(
+            response?.message || this.$t('LOGIN.API.UNAUTH')
+          );
         });
     },
   },

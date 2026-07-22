@@ -1,8 +1,8 @@
 <template>
-  <div class="column content-box">
+  <div class="flex flex-col h-auto overflow-auto">
     <woot-modal-header :header-title="pageTitle" />
-    <form class="row" @submit.prevent="editCampaign">
-      <div class="medium-12 columns">
+    <form class="flex flex-col w-full" @submit.prevent="editCampaign">
+      <div class="w-full">
         <woot-input
           v-model="title"
           :label="$t('CAMPAIGN.ADD.FORM.TITLE.LABEL')"
@@ -12,10 +12,12 @@
           :placeholder="$t('CAMPAIGN.ADD.FORM.TITLE.PLACEHOLDER')"
           @blur="$v.title.$touch"
         />
-        <label class="editor-wrap">
-          {{ $t('CAMPAIGN.ADD.FORM.MESSAGE.LABEL') }}
+        <div class="editor-wrap">
+          <label>
+            {{ $t('CAMPAIGN.ADD.FORM.MESSAGE.LABEL') }}
+          </label>
           <woot-message-editor
-            v-model.trim="message"
+            v-model="message"
             class="message-editor"
             :is-format-mode="true"
             :class="{ editor_warning: $v.message.$error }"
@@ -25,7 +27,7 @@
           <span v-if="$v.message.$error" class="editor-warning__message">
             {{ $t('CAMPAIGN.ADD.FORM.MESSAGE.ERROR') }}
           </span>
-        </label>
+        </div>
 
         <label :class="{ error: $v.selectedInbox.$error }">
           {{ $t('CAMPAIGN.ADD.FORM.INBOX.LABEL') }}
@@ -97,7 +99,7 @@
           {{ $t('CAMPAIGN.ADD.FORM.TRIGGER_ONLY_BUSINESS_HOURS') }}
         </label>
       </div>
-      <div class="modal-footer">
+      <div class="flex flex-row justify-end w-full gap-2 px-0 py-2">
         <woot-button :is-loading="uiFlags.isCreating">
           {{ $t('CAMPAIGN.EDIT.UPDATE_BUTTON_TEXT') }}
         </woot-button>
@@ -112,8 +114,8 @@
 <script>
 import { mapGetters } from 'vuex';
 import { required } from 'vuelidate/lib/validators';
-import WootMessageEditor from 'dashboard/components/widgets/WootWriter/Editor';
-import alertMixin from 'shared/mixins/alertMixin';
+import { useAlert } from 'dashboard/composables';
+import WootMessageEditor from 'dashboard/components/widgets/WootWriter/Editor.vue';
 import campaignMixin from 'shared/mixins/campaignMixin';
 import { URLPattern } from 'urlpattern-polyfill';
 
@@ -121,7 +123,7 @@ export default {
   components: {
     WootMessageEditor,
   },
-  mixins: [alertMixin, campaignMixin],
+  mixins: [campaignMixin],
   props: {
     selectedCampaign: {
       type: Object,
@@ -223,7 +225,7 @@ export default {
       } catch (error) {
         const errorMessage =
           error?.response?.message || this.$t('CAMPAIGN.ADD.API.ERROR_MESSAGE');
-        this.showAlert(errorMessage);
+        useAlert(errorMessage);
       }
     },
     onChangeInbox() {
@@ -270,10 +272,10 @@ export default {
             time_on_page: this.timeOnPage,
           },
         });
-        this.showAlert(this.$t('CAMPAIGN.EDIT.API.SUCCESS_MESSAGE'));
+        useAlert(this.$t('CAMPAIGN.EDIT.API.SUCCESS_MESSAGE'));
         this.onClose();
       } catch (error) {
-        this.showAlert(this.$t('CAMPAIGN.EDIT.API.ERROR_MESSAGE'));
+        useAlert(this.$t('CAMPAIGN.EDIT.API.ERROR_MESSAGE'));
       }
     },
   },
@@ -281,6 +283,16 @@ export default {
 </script>
 <style lang="scss" scoped>
 ::v-deep .ProseMirror-woot-style {
-  height: 8rem;
+  height: 5rem;
+}
+
+.message-editor {
+  @apply px-3;
+
+  ::v-deep {
+    .ProseMirror-menubar {
+      @apply rounded-tl-[4px];
+    }
+  }
 }
 </style>

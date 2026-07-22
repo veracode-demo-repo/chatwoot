@@ -1,22 +1,27 @@
 <template>
-  <div class="row">
-    <div class="integration--image">
-      <img :src="'/dashboard/images/integrations/' + integrationLogo" />
+  <div
+    class="flex flex-col md:flex-row justify-between items-start md:items-center"
+  >
+    <div class="flex items-center justify-start m-0 mx-4 flex-1">
+      <img
+        :src="`/dashboard/images/integrations/${integrationId}.png`"
+        class="p-2 h-16 w-16 mr-4"
+      />
+      <div>
+        <h3 class="text-xl font-medium mb-1 text-slate-800 dark:text-slate-100">
+          {{ integrationName }}
+        </h3>
+        <p class="text-slate-700 dark:text-slate-200">
+          {{
+            useInstallationName(
+              integrationDescription,
+              globalConfig.installationName
+            )
+          }}
+        </p>
+      </div>
     </div>
-    <div class="integration--type column">
-      <h3 class="integration--title">
-        {{ integrationName }}
-      </h3>
-      <p>
-        {{
-          useInstallationName(
-            integrationDescription,
-            globalConfig.installationName
-          )
-        }}
-      </p>
-    </div>
-    <div class="small-2 column button-wrap">
+    <div class="flex justify-center items-center mb-0 w-[15%]">
       <router-link
         :to="
           frontendURL(
@@ -26,13 +31,13 @@
       >
         <div v-if="integrationEnabled">
           <div v-if="integrationAction === 'disconnect'">
-            <div @click="openDeletePopup()">
+            <div @click="openDeletePopup">
               <woot-submit-button
                 :button-text="
+                  actionButtonText ||
                   $t('INTEGRATION_SETTINGS.WEBHOOK.DELETE.BUTTON_TEXT')
                 "
-                icon-class="dismiss-circle"
-                button-class="nice alert"
+                button-class="smooth alert"
               />
             </div>
           </div>
@@ -44,7 +49,7 @@
         </div>
       </router-link>
       <div v-if="!integrationEnabled">
-        <a :href="integrationAction" class="button success nice">
+        <a :href="integrationAction" class="button success nice rounded">
           {{ $t('INTEGRATION_SETTINGS.CONNECT.BUTTON_TEXT') }}
         </a>
       </div>
@@ -53,8 +58,14 @@
       :show.sync="showDeleteConfirmationPopup"
       :on-close="closeDeletePopup"
       :on-confirm="confirmDeletion"
-      :title="$t('INTEGRATION_SETTINGS.WEBHOOK.DELETE.CONFIRM.TITLE')"
-      :message="$t('INTEGRATION_SETTINGS.WEBHOOK.DELETE.CONFIRM.MESSAGE')"
+      :title="
+        deleteConfirmationText.title ||
+        $t('INTEGRATION_SETTINGS.WEBHOOK.DELETE.CONFIRM.TITLE')
+      "
+      :message="
+        deleteConfirmationText.message ||
+        $t('INTEGRATION_SETTINGS.WEBHOOK.DELETE.CONFIRM.MESSAGE')
+      "
       :confirm-text="$t('INTEGRATION_SETTINGS.WEBHOOK.DELETE.CONFIRM.YES')"
       :reject-text="$t('INTEGRATION_SETTINGS.WEBHOOK.DELETE.CONFIRM.NO')"
     />
@@ -63,11 +74,11 @@
 <script>
 import { mapGetters } from 'vuex';
 import { frontendURL } from '../../../../helper/URLHelper';
-import alertMixin from 'shared/mixins/alertMixin';
+import { useAlert } from 'dashboard/composables';
 import globalConfigMixin from 'shared/mixins/globalConfigMixin';
 
 export default {
-  mixins: [alertMixin, globalConfigMixin],
+  mixins: [globalConfigMixin],
   props: {
     integrationId: {
       type: [String, Number],
@@ -78,6 +89,8 @@ export default {
     integrationDescription: { type: String, default: '' },
     integrationEnabled: { type: Boolean, default: false },
     integrationAction: { type: String, default: '' },
+    actionButtonText: { type: String, default: '' },
+    deleteConfirmationText: { type: Object, default: () => ({}) },
   },
   data() {
     return {
@@ -110,11 +123,9 @@ export default {
           'integrations/deleteIntegration',
           this.integrationId
         );
-        this.showAlert(
-          this.$t('INTEGRATION_SETTINGS.DELETE.API.SUCCESS_MESSAGE')
-        );
+        useAlert(this.$t('INTEGRATION_SETTINGS.DELETE.API.SUCCESS_MESSAGE'));
       } catch (error) {
-        this.showAlert(
+        useAlert(
           this.$t('INTEGRATION_SETTINGS.WEBHOOK.DELETE.API.ERROR_MESSAGE')
         );
       }

@@ -1,11 +1,11 @@
 <template>
-  <div class="column content-box audit-log--settings">
+  <div class="flex flex-col justify-between flex-1 p-4 overflow-auto">
     <!-- List Audit Logs -->
     <div>
       <div>
         <p
           v-if="!uiFlags.fetchingList && !records.length"
-          class="no-items-error-message"
+          class="flex flex-col items-center justify-center h-full"
         >
           {{ $t('AUDIT_LOGS.LIST.404') }}
         </p>
@@ -16,10 +16,10 @@
 
         <table
           v-if="!uiFlags.fetchingList && records.length"
-          class="woot-table width-100"
+          class="w-full woot-table"
         >
           <colgroup>
-            <col class="column-activity" />
+            <col class="w-3/5" />
             <col />
             <col />
           </colgroup>
@@ -34,10 +34,10 @@
           </thead>
           <tbody>
             <tr v-for="auditLogItem in records" :key="auditLogItem.id">
-              <td class="wrap-break-words">
+              <td class="break-all whitespace-nowrap">
                 {{ generateLogText(auditLogItem) }}
               </td>
-              <td class="wrap-break-words">
+              <td class="break-all whitespace-nowrap">
                 {{
                   messageTimestamp(
                     auditLogItem.created_at,
@@ -45,7 +45,7 @@
                   )
                 }}
               </td>
-              <td class="remote-address">
+              <td class="w-[8.75rem]">
                 {{ auditLogItem.remote_address }}
               </td>
             </tr>
@@ -57,15 +57,16 @@
       :current-page="Number(meta.currentPage)"
       :total-count="meta.totalEntries"
       :page-size="meta.perPage"
+      class="!bg-slate-25 dark:!bg-slate-900 border-t border-slate-75 dark:border-slate-700/50"
       @page-change="onPageChange"
     />
   </div>
 </template>
 <script>
 import { mapGetters } from 'vuex';
-import TableFooter from 'dashboard/components/widgets/TableFooter';
-import timeMixin from 'dashboard/mixins/time';
-import alertMixin from 'shared/mixins/alertMixin';
+import { useAlert } from 'dashboard/composables';
+import { messageTimestamp } from 'shared/helpers/timeHelper';
+import TableFooter from 'dashboard/components/widgets/TableFooter.vue';
 import {
   generateTranslationPayload,
   generateLogActionKey,
@@ -75,7 +76,12 @@ export default {
   components: {
     TableFooter,
   },
-  mixins: [alertMixin, timeMixin],
+  beforeRouteEnter(to, from, next) {
+    // Fetch Audit Logs on page load without manual refresh
+    next(vm => {
+      vm.fetchAuditLogs();
+    });
+  },
   data() {
     return {
       loading: {},
@@ -83,12 +89,6 @@ export default {
         message: '',
       },
     };
-  },
-  beforeRouteEnter(to, from, next) {
-    // Fetch Audit Logs on page load without manual refresh
-    next(vm => {
-      vm.fetchAuditLogs();
-    });
   },
   computed: {
     ...mapGetters({
@@ -103,12 +103,13 @@ export default {
     this.$store.dispatch('agents/get');
   },
   methods: {
+    messageTimestamp,
     fetchAuditLogs() {
       const page = this.$route.query.page ?? 1;
       this.$store.dispatch('auditlogs/fetch', { page }).catch(error => {
         const errorMessage =
           error?.message || this.$t('AUDIT_LOGS.API.ERROR_MESSAGE');
-        this.showAlert(errorMessage);
+        useAlert(errorMessage);
       });
     },
     generateLogText(auditLogItem) {
@@ -127,30 +128,9 @@ export default {
       } catch (error) {
         const errorMessage =
           error?.message || this.$t('AUDIT_LOGS.API.ERROR_MESSAGE');
-        this.showAlert(errorMessage);
+        useAlert(errorMessage);
       }
     },
   },
 };
 </script>
-
-<style lang="scss" scoped>
-.audit-log--settings {
-  display: flex;
-  justify-content: space-between;
-  flex-direction: column;
-
-  .remote-address {
-    width: 14rem;
-  }
-
-  .wrap-break-words {
-    word-break: break-all;
-    white-space: normal;
-  }
-
-  .column-activity {
-    width: 60%;
-  }
-}
-</style>

@@ -3,6 +3,7 @@
     "TITLE": "Kontoindstillinger",
     "SUBMIT": "Opdater indstillinger",
     "BACK": "Tilbage",
+    "DISMISS": "Dismiss",
     "UPDATE": {
       "ERROR": "Kunne ikke opdatere indstillinger, prøv igen!",
       "SUCCESS": "Kontoindstillinger blev opdateret"
@@ -86,12 +87,17 @@
       "conversation_assignment": "Samtale Tildelt",
       "assigned_conversation_new_message": "Ny Besked",
       "participating_conversation_new_message": "Ny Besked",
-      "conversation_mention": "Omtale"
+      "conversation_mention": "Omtale",
+      "sla_missed_first_response": "SLA Missed",
+      "sla_missed_next_response": "SLA Missed",
+      "sla_missed_resolution": "SLA Missed"
     }
   },
   "NETWORK": {
     "NOTIFICATION": {
-      "TEXT": "Afbrudt fra Chatwoot"
+      "OFFLINE": "Offline",
+      "RECONNECTING": "Reconnecting...",
+      "RECONNECT_SUCCESS": "Reconnected"
     },
     "BUTTON": {
       "REFRESH": "Opdater"
@@ -103,13 +109,17 @@
       "GENERAL": "Generelt",
       "REPORTS": "Rapporter",
       "CONVERSATION": "Samtale",
+      "BULK_ACTIONS": "Bulk Actions",
       "CHANGE_ASSIGNEE": "Skift Modtager",
       "CHANGE_PRIORITY": "Change Priority",
       "CHANGE_TEAM": "Skift Team",
       "SNOOZE_CONVERSATION": "Udsæt Samtale",
       "ADD_LABEL": "Tilføj etiket til samtalen",
       "REMOVE_LABEL": "Fjern etiket fra samtalen",
-      "SETTINGS": "Indstillinger"
+      "SETTINGS": "Indstillinger",
+      "AI_ASSIST": "AI Assist",
+      "APPEARANCE": "Appearance",
+      "SNOOZE_NOTIFICATION": "Snooze Notification"
     },
     "COMMANDS": {
       "GO_TO_CONVERSATION_DASHBOARD": "Gå til Konversationspanel",
@@ -131,6 +141,7 @@
       "GO_TO_NOTIFICATIONS": "Gå til Notifikationer",
       "ADD_LABELS_TO_CONVERSATION": "Tilføj etiket til samtalen",
       "ASSIGN_AN_AGENT": "Tildel en agent",
+      "AI_ASSIST": "AI Assist",
       "ASSIGN_PRIORITY": "Assign priority",
       "ASSIGN_A_TEAM": "Tildel et team",
       "MUTE_CONVERSATION": "Gør samtale lydløs",
@@ -145,10 +156,19 @@
       "UNTIL_TOMORROW": "Indtil i morgen",
       "UNTIL_NEXT_MONTH": "Until next month",
       "AN_HOUR_FROM_NOW": "Until an hour from now",
-      "CUSTOM": "Custom..."
+      "UNTIL_CUSTOM_TIME": "Custom...",
+      "CHANGE_APPEARANCE": "Change Appearance",
+      "LIGHT_MODE": "Light",
+      "DARK_MODE": "Dark",
+      "SYSTEM_MODE": "System",
+      "SNOOZE_NOTIFICATION": "Snooze Notification"
     }
   },
   "DASHBOARD_APPS": {
     "LOADING_MESSAGE": "Indlæser Dashboard App..."
+  },
+  "COMMON": {
+    "OR": "Or",
+    "CLICK_HERE": "klik her"
   }
 }

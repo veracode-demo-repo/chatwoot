@@ -1,7 +1,7 @@
 <template>
   <div class="bulk-action__container">
-    <div class="flex-between">
-      <label class="bulk-action__panel flex-between">
+    <div class="flex items-center justify-between">
+      <label class="bulk-action__panel flex items-center justify-between">
         <input
           ref="selectAllCheck"
           type="checkbox"
@@ -18,14 +18,13 @@
           }}
         </span>
       </label>
-      <div class="bulk-action__actions flex-between">
+      <div class="bulk-action__actions flex gap-1 items-center">
         <woot-button
           v-tooltip="$t('BULK_ACTION.LABELS.ASSIGN_LABELS')"
           size="tiny"
           variant="smooth"
           color-scheme="secondary"
           icon="tag"
-          class="margin-right-smaller"
           @click="toggleLabelActions"
         />
         <woot-button
@@ -34,7 +33,6 @@
           variant="smooth"
           color-scheme="secondary"
           icon="repeat"
-          class="margin-right-smaller"
           @click="toggleUpdateActions"
         />
         <woot-button
@@ -43,7 +41,6 @@
           variant="smooth"
           color-scheme="secondary"
           icon="person-assign"
-          class="margin-right-smaller"
           @click="toggleAgentList"
         />
         <woot-button
@@ -98,20 +95,40 @@
     <div v-if="allConversationsSelected" class="bulk-action__alert">
       {{ $t('BULK_ACTION.ALL_CONVERSATIONS_SELECTED_ALERT') }}
     </div>
+    <woot-modal
+      :show.sync="showCustomTimeSnoozeModal"
+      :on-close="hideCustomSnoozeModal"
+    >
+      <custom-snooze-modal
+        @close="hideCustomSnoozeModal"
+        @choose-time="customSnoozeTime"
+      />
+    </woot-modal>
   </div>
 </template>
 
 <script>
+import { getUnixTime } from 'date-fns';
+import { findSnoozeTime } from 'dashboard/helper/snoozeHelpers';
+import wootConstants from 'dashboard/constants/globals';
+import {
+  CMD_BULK_ACTION_SNOOZE_CONVERSATION,
+  CMD_BULK_ACTION_REOPEN_CONVERSATION,
+  CMD_BULK_ACTION_RESOLVE_CONVERSATION,
+} from 'dashboard/routes/dashboard/commands/commandBarBusEvents';
+
 import AgentSelector from './AgentSelector.vue';
 import UpdateActions from './UpdateActions.vue';
 import LabelActions from './LabelActions.vue';
 import TeamActions from './TeamActions.vue';
+import CustomSnoozeModal from 'dashboard/components/CustomSnoozeModal.vue';
 export default {
   components: {
     AgentSelector,
     UpdateActions,
     LabelActions,
     TeamActions,
+    CustomSnoozeModal,
   },
   props: {
     conversations: {
@@ -146,17 +163,68 @@ export default {
       showLabelActions: false,
       showTeamsList: false,
       popoverPositions: {},
+      showCustomTimeSnoozeModal: false,
     };
   },
+  mounted() {
+    this.$emitter.on(
+      CMD_BULK_ACTION_SNOOZE_CONVERSATION,
+      this.onCmdSnoozeConversation
+    );
+    this.$emitter.on(
+      CMD_BULK_ACTION_REOPEN_CONVERSATION,
+      this.onCmdReopenConversation
+    );
+    this.$emitter.on(
+      CMD_BULK_ACTION_RESOLVE_CONVERSATION,
+      this.onCmdResolveConversation
+    );
+  },
+  destroyed() {
+    this.$emitter.off(
+      CMD_BULK_ACTION_SNOOZE_CONVERSATION,
+      this.onCmdSnoozeConversation
+    );
+    this.$emitter.off(
+      CMD_BULK_ACTION_REOPEN_CONVERSATION,
+      this.onCmdReopenConversation
+    );
+    this.$emitter.off(
+      CMD_BULK_ACTION_RESOLVE_CONVERSATION,
+      this.onCmdResolveConversation
+    );
+  },
   methods: {
+    onCmdSnoozeConversation(snoozeType) {
+      if (snoozeType === wootConstants.SNOOZE_OPTIONS.UNTIL_CUSTOM_TIME) {
+        this.showCustomTimeSnoozeModal = true;
+      } else {
+        this.updateConversations('snoozed', findSnoozeTime(snoozeType) || null);
+      }
+    },
+    onCmdReopenConversation() {
+      this.updateConversations('open', null);
+    },
+    onCmdResolveConversation() {
+      this.updateConversations('resolved', null);
+    },
+    customSnoozeTime(customSnoozedTime) {
+      this.showCustomTimeSnoozeModal = false;
+      if (customSnoozedTime) {
+        this.updateConversations('snoozed', getUnixTime(customSnoozedTime));
+      }
+    },
+    hideCustomSnoozeModal() {
+      this.showCustomTimeSnoozeModal = false;
+    },
     selectAll(e) {
       this.$emit('select-all-conversations', e.target.checked);
     },
     submit(agent) {
       this.$emit('assign-agent', agent);
     },
-    updateConversations(status) {
-      this.$emit('update-conversations', status);
+    updateConversations(status, snoozedUntil) {
+      this.$emit('update-conversations', status, snoozedUntil);
     },
     assignLabels(labels) {
       this.$emit('assign-labels', labels);
@@ -194,33 +262,23 @@ export default {
 }
 
 .bulk-action__container {
-  border-bottom: 1px solid var(--s-100);
-  padding: var(--space-normal);
-  position: relative;
+  @apply p-4 relative border-b border-solid border-slate-100 dark:border-slate-600/70;
 }
 
 .bulk-action__panel {
-  cursor: pointer;
+  @apply cursor-pointer;
 
   span {
-    font-size: var(--font-size-mini);
-    margin: 0 var(--space-smaller);
+    @apply text-xs my-0 mx-1;
   }
 
   input[type='checkbox'] {
-    cursor: pointer;
-    margin: var(--space-zero);
+    @apply cursor-pointer m-0;
   }
 }
 
 .bulk-action__alert {
-  background-color: var(--y-50);
-  border-radius: var(--border-radius-small);
-  border: 1px solid var(--y-300);
-  color: var(--y-700);
-  font-size: var(--font-size-mini);
-  margin-top: var(--space-small);
-  padding: var(--space-smaller) var(--space-small);
+  @apply bg-yellow-50 text-yellow-700 rounded text-xs mt-2 py-1 px-2 border border-solid border-yellow-300 dark:border-yellow-300/10 dark:bg-yellow-200/20 dark:text-yellow-400;
 }
 
 .popover-animation-enter-active,
@@ -229,35 +287,35 @@ export default {
 }
 
 .popover-animation-enter {
-  opacity: 0;
   transform: scale(0.95);
+  @apply opacity-0;
 }
 
 .popover-animation-enter-to {
-  opacity: 1;
   transform: scale(1);
+  @apply opacity-100;
 }
 
 .popover-animation-leave {
-  opacity: 1;
   transform: scale(1);
+  @apply opacity-100;
 }
 
 .popover-animation-leave-to {
-  opacity: 0;
   transform: scale(0.95);
+  @apply opacity-0;
 }
 
 .label-actions-box {
-  --triangle-position: 8.5rem;
+  --triangle-position: 5.3125rem;
 }
 .update-actions-box {
-  --triangle-position: 5.6rem;
+  --triangle-position: 3.5rem;
 }
 .agent-actions-box {
-  --triangle-position: 2.8rem;
+  --triangle-position: 1.75rem;
 }
 .team-actions-box {
-  --triangle-position: 0.2rem;
+  --triangle-position: 0.125rem;
 }
 </style>

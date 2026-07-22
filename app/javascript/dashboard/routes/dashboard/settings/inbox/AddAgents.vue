@@ -1,14 +1,16 @@
 <template>
-  <div class="wizard-body columns content-box small-9">
-    <form class="row" @submit.prevent="addAgents()">
-      <div class="medium-12 columns">
+  <div
+    class="border border-slate-25 dark:border-slate-800/60 bg-white dark:bg-slate-900 h-full p-6 w-full max-w-full md:w-3/4 md:max-w-[75%] flex-shrink-0 flex-grow-0"
+  >
+    <form class="flex flex-wrap mx-0" @submit.prevent="addAgents()">
+      <div class="w-full">
         <page-header
           :header-title="$t('INBOX_MGMT.ADD.AGENTS.TITLE')"
           :header-content="$t('INBOX_MGMT.ADD.AGENTS.DESC')"
         />
       </div>
-      <div class="medium-7 columns">
-        <div class="medium-12 columns">
+      <div class="w-3/5">
+        <div class="w-full">
           <label :class="{ error: $v.selectedAgents.$error }">
             {{ $t('INBOX_MGMT.ADD.AGENTS.TITLE') }}
             <multiselect
@@ -31,7 +33,7 @@
             </span>
           </label>
         </div>
-        <div class="medium-12 columns">
+        <div class="w-full">
           <woot-submit-button
             :button-text="$t('INBOX_MGMT.AGENTS.BUTTON_TEXT')"
             :loading="isCreating"
@@ -45,10 +47,11 @@
 <script>
 /* eslint no-console: 0 */
 import { mapGetters } from 'vuex';
+import { useAlert } from 'dashboard/composables';
 
 import InboxMembersAPI from '../../../../api/inboxMembers';
 import router from '../../../index';
-import PageHeader from '../SettingsSubPageHeader';
+import PageHeader from '../SettingsSubPageHeader.vue';
 
 export default {
   components: {
@@ -96,7 +99,7 @@ export default {
           },
         });
       } catch (error) {
-        bus.$emit('newToastMessage', error.message);
+        useAlert(error.message);
       }
       this.isCreating = false;
     },

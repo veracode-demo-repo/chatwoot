@@ -2,7 +2,7 @@
   <woot-button
     v-tooltip.right="$t(`SIDEBAR.PROFILE_SETTINGS`)"
     variant="link"
-    class="current-user"
+    class="items-center flex rounded-full"
     @click="handleClick"
   >
     <thumbnail
@@ -16,7 +16,7 @@
 </template>
 <script>
 import { mapGetters } from 'vuex';
-import Thumbnail from '../../widgets/Thumbnail';
+import Thumbnail from '../../widgets/Thumbnail.vue';
 
 export default {
   components: {
@@ -38,12 +38,3 @@ export default {
   },
 };
 </script>
-
-<style scoped lang="scss">
-.current-user {
-  align-items: center;
-  display: flex;
-  border-radius: 50%;
-  border: 2px solid var(--white);
-}
-</style>

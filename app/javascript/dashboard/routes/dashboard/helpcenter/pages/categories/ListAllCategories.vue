@@ -1,13 +1,115 @@
+<script setup>
+import { useRoute } from 'dashboard/composables/route';
+import { useStoreGetters, useStore } from 'dashboard/composables/store';
+import { useI18n } from 'dashboard/composables/useI18n';
+import { useAlert, useTrack } from 'dashboard/composables';
+import { PORTALS_EVENTS } from 'dashboard/helper/AnalyticsHelper/events';
+
+import { defineComponent, ref, computed } from 'vue';
+
+import CategoryListItem from './CategoryListItem.vue';
+import AddCategory from './AddCategory.vue';
+import EditCategory from './EditCategory.vue';
+
+defineComponent({
+  name: 'ListAllCategories',
+});
+
+const selectedCategory = ref({});
+const currentLocaleCode = ref('en');
+const showEditCategoryModal = ref(false);
+const showAddCategoryModal = ref(false);
+
+const getters = useStoreGetters();
+const store = useStore();
+const route = useRoute();
+const track = useTrack();
+const { t } = useI18n();
+const currentPortalSlug = computed(() => {
+  return route.params.portalSlug;
+});
+
+const categoriesByLocaleCode = computed(() => {
+  return getters['categories/categoriesByLocaleCode'].value(
+    currentLocaleCode.value
+  );
+});
+
+const currentPortal = computed(() => {
+  const slug = currentPortalSlug.value;
+  if (slug) return getters['portals/portalBySlug'].value(slug);
+
+  return getters['portals/allPortals'].value[0];
+});
+const currentPortalName = computed(() => {
+  return currentPortal.value ? currentPortal.value.name : '';
+});
+const allLocales = computed(() => {
+  return currentPortal.value ? currentPortal.value.config.allowed_locales : [];
+});
+
+const allowedLocaleCodes = computed(() => {
+  return allLocales.value.map(locale => locale.code);
+});
+
+function openAddCategoryModal() {
+  showAddCategoryModal.value = true;
+}
+function openEditCategoryModal(category) {
+  selectedCategory.value = category;
+  showEditCategoryModal.value = true;
+}
+function closeAddCategoryModal() {
+  showAddCategoryModal.value = false;
+}
+function closeEditCategoryModal() {
+  showEditCategoryModal.value = false;
+}
+async function fetchCategoriesByPortalSlugAndLocale(localeCode) {
+  await store.dispatch('categories/index', {
+    portalSlug: currentPortalSlug.value,
+    locale: localeCode,
+  });
+}
+
+async function deleteCategory(category) {
+  let alertMessage = '';
+  try {
+    await store.dispatch('categories/delete', {
+      portalSlug: currentPortalSlug.value,
+      categoryId: category.id,
+    });
+    alertMessage = t('HELP_CENTER.CATEGORY.DELETE.API.SUCCESS_MESSAGE');
+    track(PORTALS_EVENTS.DELETE_CATEGORY, {
+      hasArticles: category?.meta?.articles_count !== 0,
+    });
+  } catch (error) {
+    const errorMessage = error?.message;
+    alertMessage =
+      errorMessage || t('HELP_CENTER.CATEGORY.DELETE.API.ERROR_MESSAGE');
+  } finally {
+    useAlert(alertMessage);
+  }
+}
+function changeCurrentCategory(event) {
+  const localeCode = event.target.value;
+  currentLocaleCode.value = localeCode;
+  fetchCategoriesByPortalSlugAndLocale(localeCode);
+}
+</script>
+
 <template>
-  <div class="category-list--container">
-    <header>
-      <div class="header-left--wrap">
-        <label class="sub-block-title header-text">{{
-          $t('HELP_CENTER.PORTAL.EDIT.CATEGORIES.TITLE')
-        }}</label>
+  <div class="w-full max-w-6xl">
+    <header class="flex items-center justify-between mb-4">
+      <div class="flex items-center w-full gap-3">
+        <label
+          class="mb-0 text-base font-normal text-slate-800 dark:text-slate-100"
+        >
+          {{ $t('HELP_CENTER.PORTAL.EDIT.CATEGORIES.TITLE') }}
+        </label>
         <select
           :value="currentLocaleCode"
-          class="row small-2 select-locale"
+          class="w-[15%] h-8 mb-0 py-0.5"
           @change="changeCurrentCategory"
         >
           <option
@@ -19,7 +121,7 @@
           </option>
         </select>
       </div>
-      <div class="header-right--wrap">
+      <div class="items-center flex-none">
         <woot-button
           size="small"
           variant="smooth"
@@ -56,150 +158,3 @@
     />
   </div>
 </template>
-<script>
-import { mapGetters } from 'vuex';
-import alertMixin from 'shared/mixins/alertMixin';
-import portalMixin from '../../mixins/portalMixin';
-
-import CategoryListItem from './CategoryListItem';
-import AddCategory from './AddCategory';
-import EditCategory from './EditCategory';
-import { PORTALS_EVENTS } from '../../../../../helper/AnalyticsHelper/events';
-
-export default {
-  components: {
-    CategoryListItem,
-    AddCategory,
-    EditCategory,
-  },
-  mixins: [alertMixin, portalMixin],
-  data() {
-    return {
-      selectedCategory: {},
-      selectedLocaleCode: '',
-      currentLocaleCode: 'en',
-      showEditCategoryModal: false,
-      showAddCategoryModal: false,
-      alertMessage: '',
-    };
-  },
-  computed: {
-    ...mapGetters({
-      portals: 'portals/allPortals',
-      meta: 'portals/getMeta',
-      isFetching: 'portals/isFetchingPortals',
-    }),
-    currentPortalSlug() {
-      return this.$route.params.portalSlug;
-    },
-    categoriesByLocaleCode() {
-      return this.$store.getters['categories/categoriesByLocaleCode'](
-        this.currentLocaleCode
-      );
-    },
-    currentPortal() {
-      const slug = this.currentPortalSlug;
-      if (slug) return this.$store.getters['portals/portalBySlug'](slug);
-
-      return this.$store.getters['portals/allPortals'][0];
-    },
-    currentPortalName() {
-      return this.currentPortal ? this.currentPortal.name : '';
-    },
-    currentPortalLocale() {
-      return this.currentPortal ? this.currentPortal?.meta?.default_locale : '';
-    },
-    allLocales() {
-      return this.currentPortal
-        ? this.currentPortal.config.allowed_locales
-        : [];
-    },
-    allowedLocaleCodes() {
-      return this.allLocales.map(locale => locale.code);
-    },
-  },
-  methods: {
-    openAddCategoryModal() {
-      this.showAddCategoryModal = true;
-    },
-    openEditCategoryModal(category) {
-      this.selectedCategory = category;
-      this.showEditCategoryModal = true;
-    },
-    closeAddCategoryModal() {
-      this.showAddCategoryModal = false;
-    },
-    closeEditCategoryModal() {
-      this.showEditCategoryModal = false;
-    },
-    async fetchCategoriesByPortalSlugAndLocale(localeCode) {
-      await this.$store.dispatch('categories/index', {
-        portalSlug: this.currentPortalSlug,
-        locale: localeCode,
-      });
-    },
-    async deleteCategory(category) {
-      try {
-        await this.$store.dispatch('categories/delete', {
-          portalSlug: this.currentPortalSlug,
-          categoryId: category.id,
-        });
-        this.alertMessage = this.$t(
-          'HELP_CENTER.CATEGORY.DELETE.API.SUCCESS_MESSAGE'
-        );
-        this.$track(PORTALS_EVENTS.DELETE_CATEGORY, {
-          hasArticles: category?.meta?.articles_count !== 0,
-        });
-      } catch (error) {
-        const errorMessage = error?.message;
-        this.alertMessage =
-          errorMessage ||
-          this.$t('HELP_CENTER.CATEGORY.DELETE.API.ERROR_MESSAGE');
-      } finally {
-        this.showAlert(this.alertMessage);
-      }
-    },
-    changeCurrentCategory(event) {
-      const localeCode = event.target.value;
-      this.currentLocaleCode = localeCode;
-      this.fetchCategoriesByPortalSlugAndLocale(localeCode);
-    },
-  },
-};
-</script>
-<style lang="scss" scoped>
-.category-list--container {
-  width: 100%;
-  padding-left: var(--space-normal);
-
-  header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--space-normal);
-
-    .header-left--wrap {
-      display: flex;
-      align-items: center;
-      width: 100%;
-
-      .header-text {
-        font-weight: var(--font-weight-normal);
-        margin-right: var(--space-slab);
-        margin-bottom: 0;
-      }
-    }
-
-    .header-right--wrap {
-      flex: none;
-      align-items: center;
-    }
-    .select-locale {
-      height: var(--space-large);
-      margin-bottom: 0;
-      padding-top: var(--space-micro);
-      padding-bottom: var(--space-micro);
-    }
-  }
-}
-</style>

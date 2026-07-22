@@ -1,5 +1,5 @@
 <template>
-  <div class="row content-box full-height">
+  <div class="flex-1 p-4 overflow-auto">
     <woot-button
       color-scheme="success"
       class-names="button--fixed-top"
@@ -9,11 +9,11 @@
       {{ $t('INTEGRATION_SETTINGS.WEBHOOK.HEADER_BTN_TXT') }}
     </woot-button>
 
-    <div class="row">
-      <div class="small-8 columns with-right-space ">
+    <div class="flex flex-row gap-4">
+      <div class="w-full lg:w-3/5">
         <p
           v-if="!uiFlags.fetchingList && !records.length"
-          class="no-items-error-message"
+          class="flex flex-col items-center justify-center h-full"
         >
           {{ $t('INTEGRATION_SETTINGS.WEBHOOK.LIST.404') }}
         </p>
@@ -32,6 +32,7 @@
                 'INTEGRATION_SETTINGS.WEBHOOK.LIST.TABLE_HEADER'
               )"
               :key="thHeader"
+              class="last:text-right"
             >
               {{ thHeader }}
             </th>
@@ -49,7 +50,7 @@
         </table>
       </div>
 
-      <div class="small-4 columns">
+      <div class="hidden w-1/3 lg:block">
         <span
           v-dompurify-html="
             useInstallationName(
@@ -90,11 +91,11 @@
 </template>
 <script>
 import { mapGetters } from 'vuex';
-import NewWebhook from './NewWebHook';
-import EditWebhook from './EditWebHook';
-import alertMixin from 'shared/mixins/alertMixin';
+import { useAlert } from 'dashboard/composables';
+import NewWebhook from './NewWebHook.vue';
+import EditWebhook from './EditWebHook.vue';
 import globalConfigMixin from 'shared/mixins/globalConfigMixin';
-import WebhookRow from './WebhookRow';
+import WebhookRow from './WebhookRow.vue';
 
 export default {
   components: {
@@ -102,7 +103,7 @@ export default {
     EditWebhook,
     WebhookRow,
   },
-  mixins: [alertMixin, globalConfigMixin],
+  mixins: [globalConfigMixin],
   data() {
     return {
       loading: {},
@@ -151,11 +152,11 @@ export default {
     async deleteWebhook(id) {
       try {
         await this.$store.dispatch('webhooks/delete', id);
-        this.showAlert(
+        useAlert(
           this.$t('INTEGRATION_SETTINGS.WEBHOOK.DELETE.API.SUCCESS_MESSAGE')
         );
       } catch (error) {
-        this.showAlert(
+        useAlert(
           this.$t('INTEGRATION_SETTINGS.WEBHOOK.DELETE.API.ERROR_MESSAGE')
         );
       }

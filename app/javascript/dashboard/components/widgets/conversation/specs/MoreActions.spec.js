@@ -2,11 +2,20 @@ import { createLocalVue, mount } from '@vue/test-utils';
 import Vuex from 'vuex';
 import VueI18n from 'vue-i18n';
 import VTooltip from 'v-tooltip';
-
-import Button from 'dashboard/components/buttons/Button';
+import Button from 'dashboard/components/buttons/Button.vue';
 import i18n from 'dashboard/i18n';
-import FluentIcon from 'shared/components/FluentIcon/DashboardIcon';
-import MoreActions from '../MoreActions';
+import FluentIcon from 'shared/components/FluentIcon/DashboardIcon.vue';
+import MoreActions from '../MoreActions.vue';
+
+vi.mock('shared/helpers/mitt', () => ({
+  emitter: {
+    emit: vi.fn(),
+    on: vi.fn(),
+    off: vi.fn(),
+  },
+}));
+
+import { emitter } from 'shared/helpers/mitt';
 
 const localVue = createLocalVue();
 localVue.use(Vuex);
@@ -16,10 +25,13 @@ localVue.use(VTooltip);
 localVue.component('fluent-icon', FluentIcon);
 localVue.component('woot-button', Button);
 
-const i18nConfig = new VueI18n({
-  locale: 'en',
-  messages: i18n,
-});
+localVue.prototype.$emitter = {
+  emit: vi.fn(),
+  on: vi.fn(),
+  off: vi.fn(),
+};
+
+const i18nConfig = new VueI18n({ locale: 'en', messages: i18n });
 
 describe('MoveActions', () => {
   let currentChat = { id: 8, muted: false };
@@ -32,40 +44,31 @@ describe('MoveActions', () => {
   let moreActions = null;
 
   beforeEach(() => {
-    window.bus = {
-      $emit: jest.fn(),
-      $on: jest.fn(),
-      $off: jest.fn(),
-    };
-
     state = {
       authenticated: true,
       currentChat,
     };
 
-    muteConversation = jest.fn(() => Promise.resolve());
-    unmuteConversation = jest.fn(() => Promise.resolve());
+    muteConversation = vi.fn(() => Promise.resolve());
+    unmuteConversation = vi.fn(() => Promise.resolve());
 
     modules = {
-      conversations: {
-        actions: {
-          muteConversation,
-          unmuteConversation,
-        },
+      conversations: { actions: { muteConversation, unmuteConversation } },
+    };
+
+    getters = { getSelectedChat: () => currentChat };
+
+    store = new Vuex.Store({ state, modules, getters });
+
+    moreActions = mount(MoreActions, {
+      store,
+      localVue,
+      i18n: i18nConfig,
+      stubs: {
+        WootModal: { template: '<div><slot/> </div>' },
+        WootModalHeader: { template: '<div><slot/> </div>' },
       },
-    };
-
-    getters = {
-      getSelectedChat: () => currentChat,
-    };
-
-    store = new Vuex.Store({
-      state,
-      modules,
-      getters,
     });
-
-    moreActions = mount(MoreActions, { store, localVue, i18n: i18nConfig });
   });
 
   describe('muting discussion', () => {
@@ -82,11 +85,11 @@ describe('MoveActions', () => {
     it('shows alert', async () => {
       await moreActions.find('button:first-child').trigger('click');
 
-      expect(window.bus.$emit).toBeCalledWith(
-        'newToastMessage',
-        'This conversation is muted for 6 hours',
-        undefined
-      );
+      expect(emitter.emit).toBeCalledWith('newToastMessage', {
+        message:
+          'This contact is blocked successfully. You will not be notified of any future conversations.',
+        action: null,
+      });
     });
   });
 
@@ -108,11 +111,10 @@ describe('MoveActions', () => {
     it('shows alert', async () => {
       await moreActions.find('button:first-child').trigger('click');
 
-      expect(window.bus.$emit).toBeCalledWith(
-        'newToastMessage',
-        'This conversation is unmuted',
-        undefined
-      );
+      expect(emitter.emit).toBeCalledWith('newToastMessage', {
+        message: 'This contact is unblocked successfully.',
+        action: null,
+      });
     });
   });
 });

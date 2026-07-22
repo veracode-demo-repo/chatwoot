@@ -1,9 +1,9 @@
 <template>
   <modal :show.sync="show" :on-close="onClose">
-    <div class="column content-box">
+    <div class="flex flex-col h-auto overflow-auto">
       <woot-modal-header :header-title="pageTitle" />
-      <form class="row medium-8" @submit.prevent="editCannedResponse()">
-        <div class="medium-12 columns">
+      <form class="flex flex-col w-full" @submit.prevent="editCannedResponse()">
+        <div class="w-full">
           <label :class="{ error: $v.shortCode.$error }">
             {{ $t('CANNED_MGMT.EDIT.FORM.SHORT_CODE.LABEL') }}
             <input
@@ -15,14 +15,14 @@
           </label>
         </div>
 
-        <div class="medium-12 columns">
+        <div class="w-full">
           <label :class="{ error: $v.content.$error }">
             {{ $t('CANNED_MGMT.EDIT.FORM.CONTENT.LABEL') }}
           </label>
           <div class="editor-wrap">
             <woot-message-editor
               v-model="content"
-              class="message-editor"
+              class="message-editor [&>div]:px-1"
               :class="{ editor_warning: $v.content.$error }"
               :enable-variables="true"
               :enable-canned-responses="false"
@@ -31,21 +31,19 @@
             />
           </div>
         </div>
-        <div class="modal-footer">
-          <div class="medium-12 columns">
-            <woot-submit-button
-              :disabled="
-                $v.content.$invalid ||
-                  $v.shortCode.$invalid ||
-                  editCanned.showLoading
-              "
-              :button-text="$t('CANNED_MGMT.EDIT.FORM.SUBMIT')"
-              :loading="editCanned.showLoading"
-            />
-            <button class="button clear" @click.prevent="onClose">
-              {{ $t('CANNED_MGMT.EDIT.CANCEL_BUTTON_TEXT') }}
-            </button>
-          </div>
+        <div class="flex flex-row justify-end w-full gap-2 px-0 py-2">
+          <woot-submit-button
+            :disabled="
+              $v.content.$invalid ||
+              $v.shortCode.$invalid ||
+              editCanned.showLoading
+            "
+            :button-text="$t('CANNED_MGMT.EDIT.FORM.SUBMIT')"
+            :loading="editCanned.showLoading"
+          />
+          <button class="button clear" @click.prevent="onClose">
+            {{ $t('CANNED_MGMT.EDIT.CANCEL_BUTTON_TEXT') }}
+          </button>
         </div>
       </form>
     </div>
@@ -55,10 +53,10 @@
 <script>
 /* eslint no-console: 0 */
 import { required, minLength } from 'vuelidate/lib/validators';
-import WootMessageEditor from 'dashboard/components/widgets/WootWriter/Editor';
-import WootSubmitButton from '../../../../components/buttons/FormSubmitButton';
-import alertMixin from 'shared/mixins/alertMixin';
-import Modal from '../../../../components/Modal';
+import { useAlert } from 'dashboard/composables';
+import WootMessageEditor from 'dashboard/components/widgets/WootWriter/Editor.vue';
+import WootSubmitButton from '../../../../components/buttons/FormSubmitButton.vue';
+import Modal from '../../../../components/Modal.vue';
 
 export default {
   components: {
@@ -66,7 +64,6 @@ export default {
     Modal,
     WootMessageEditor,
   },
-  mixins: [alertMixin],
   props: {
     id: { type: Number, default: null },
     edcontent: { type: String, default: '' },
@@ -122,7 +119,7 @@ export default {
         .then(() => {
           // Reset Form, Show success message
           this.editCanned.showLoading = false;
-          this.showAlert(this.$t('CANNED_MGMT.EDIT.API.SUCCESS_MESSAGE'));
+          useAlert(this.$t('CANNED_MGMT.EDIT.API.SUCCESS_MESSAGE'));
           this.resetForm();
           setTimeout(() => {
             this.onClose();
@@ -132,7 +129,7 @@ export default {
           this.editCanned.showLoading = false;
           const errorMessage =
             error?.message || this.$t('CANNED_MGMT.EDIT.API.ERROR_MESSAGE');
-          this.showAlert(errorMessage);
+          useAlert(errorMessage);
         });
     },
   },
@@ -141,19 +138,15 @@ export default {
 <style scoped lang="scss">
 ::v-deep {
   .ProseMirror-menubar {
-    display: none;
+    @apply hidden;
   }
 
   .ProseMirror-woot-style {
-    min-height: 20rem;
+    @apply min-h-[12.5rem];
 
     p {
-      font-size: var(--font-size-default);
+      @apply text-base;
     }
-  }
-
-  .message-editor {
-    border: 1px solid var(--s-200);
   }
 }
 </style>

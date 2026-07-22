@@ -34,7 +34,9 @@
   "START_CONVERSATION": "Mulai Percakapan",
   "END_CONVERSATION": "Akhiri Percakapan",
   "CONTINUE_CONVERSATION": "Lanjutkan Percakapan",
+  "YOU": "You",
   "START_NEW_CONVERSATION": "Mulai Percakapan",
+  "VIEW_UNREAD_MESSAGES": "You have unread messages",
   "UNREAD_VIEW": {
     "VIEW_MESSAGES_BUTTON": "Lihat pesan baru",
     "CLOSE_MESSAGES_BUTTON": "Tutup",
@@ -66,7 +68,9 @@
         "LABEL": "Nomor Telpon",
         "PLACEHOLDER": "Masukan Nomor Telepon",
         "REQUIRED_ERROR": "Nomor Telepon Dibutuhkan",
-        "VALID_ERROR": "Nomor telepon harus dalam format E.164 misalnya: +1415555555"
+        "DIAL_CODE_VALID_ERROR": "Silakan pilih kode negara",
+        "VALID_ERROR": "Mohon berikan nomor telepon yang valid",
+        "DROPDOWN_EMPTY": "Tidak ada hasil ditemukan"
       },
       "MESSAGE": {
         "LABEL": "Pesan",
@@ -76,7 +80,8 @@
     },
     "CAMPAIGN_HEADER": "Silahkan input nama dan email anda sebelum memulai percakapan",
     "IS_REQUIRED": "dibutuhkan",
-    "REQUIRED": "Diperlukan"
+    "REQUIRED": "Diperlukan",
+    "REGEX_ERROR": "Please provide a valid input"
   },
   "FILE_SIZE_LIMIT": "File melebihi batas {MAXIMUM_FILE_UPLOAD_SIZE} lampiran",
   "CHAT_FORM": {
@@ -102,6 +107,31 @@
     "DYTE": {
       "CLICK_HERE_TO_JOIN": "Klik disini untuk join",
       "LEAVE_THE_ROOM": "Tinggalkan panggilan"
+    }
+  },
+  "PORTAL": {
+    "POPULAR_ARTICLES": "Popular Articles",
+    "VIEW_ALL_ARTICLES": "Lihat semua artikel",
+    "IFRAME_LOAD_ERROR": "There was an error loading the article, please refresh the page and try again."
+  },
+  "ATTACHMENTS": {
+    "image": {
+      "CONTENT": "Pesan gambar"
+    },
+    "audio": {
+      "CONTENT": "Pesan audio"
+    },
+    "video": {
+      "CONTENT": "Pesan video"
+    },
+    "file": {
+      "CONTENT": "Lampiran File"
+    },
+    "location": {
+      "CONTENT": "Lokasi"
+    },
+    "fallback": {
+      "CONTENT": "telah membagikan url"
     }
   }
 }

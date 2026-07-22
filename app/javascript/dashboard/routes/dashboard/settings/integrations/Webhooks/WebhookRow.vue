@@ -1,15 +1,17 @@
 <template>
-  <tr>
-    <td>
-      <div class="webhook--link">{{ webhook.url }}</div>
-      <span class="webhook--subscribed-events">
-        <span class="webhook--subscribed-label">
+  <tr class="space-x-2">
+    <td class="max-w-2xl">
+      <div class="font-medium break-words text-slate-700 dark:text-slate-100">
+        {{ webhook.url }}
+      </div>
+      <span class="text-xs text-slate-500 dark:text-slate-400">
+        <span class="font-medium">
           {{ $t('INTEGRATION_SETTINGS.WEBHOOK.SUBSCRIBED_EVENTS') }}:
         </span>
         <show-more :text="subscribedEvents" :limit="60" />
       </span>
     </td>
-    <td class="button-wrapper">
+    <td class="min-w-[7rem] flex gap-1 justify-end flex-shrink-0">
       <woot-button
         v-tooltip.top="$t('INTEGRATION_SETTINGS.WEBHOOK.EDIT.BUTTON_TEXT')"
         variant="smooth"
@@ -31,7 +33,7 @@
 </template>
 <script>
 import webhookMixin from './webhookMixin';
-import ShowMore from 'dashboard/components/widgets/ShowMore';
+import ShowMore from 'dashboard/components/widgets/ShowMore.vue';
 
 export default {
   components: { ShowMore },
@@ -54,28 +56,3 @@ export default {
   },
 };
 </script>
-<style scoped lang="scss">
-.webhook--link {
-  color: var(--s-700);
-  font-weight: var(--font-weight-medium);
-  word-break: break-word;
-}
-
-.webhook--subscribed-events {
-  color: var(--s-500);
-  font-size: var(--font-size-mini);
-}
-
-.webhook--subscribed-label {
-  font-weight: var(--font-weight-medium);
-}
-
-.button-wrapper {
-  max-width: var(--space-mega);
-  min-width: auto;
-
-  button:nth-child(2) {
-    margin-left: var(--space-normal);
-  }
-}
-</style>

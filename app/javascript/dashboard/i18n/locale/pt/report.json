@@ -4,8 +4,8 @@
     "LOADING_CHART": "Carregando dados da carta...",
     "NO_ENOUGH_DATA": "Não recebemos pontos de dados suficientes para gerar o relatório. Por favor, tente novamente mais tarde.",
     "DOWNLOAD_AGENT_REPORTS": "Descarregar relatórios de agentes",
-    "DATA_FETCHING_FAILED": "Failed to fetch data, please try again later.",
-    "SUMMARY_FETCHING_FAILED": "Failed to fetch summary, please try again later.",
+    "DATA_FETCHING_FAILED": "Não foi possível obter dados, por favor, tente mais tarde.",
+    "SUMMARY_FETCHING_FAILED": "Não foi possível obter o resumo. Por favor, tente mais tarde.",
     "METRICS": {
       "CONVERSATIONS": {
         "NAME": "Conversas",
@@ -34,6 +34,18 @@
       "RESOLUTION_COUNT": {
         "NAME": "Contagem de resolução",
         "DESC": "( Total )"
+      },
+      "BOT_RESOLUTION_COUNT": {
+        "NAME": "Contagem de resolução",
+        "DESC": "( Total )"
+      },
+      "BOT_HANDOFF_COUNT": {
+        "NAME": "Contagem de transferências",
+        "DESC": "( Total )"
+      },
+      "REPLY_TIME": {
+        "NAME": "Tempo espera do cliente",
+        "TOOLTIP_TEXT": "O tempo de espera é %{metricValue} (com base em %{conversationCount} conversas)"
       }
     },
     "DATE_RANGE_OPTIONS": {
@@ -124,13 +136,13 @@
       {
         "id": 3,
         "groupBy": "Mês"
-      },
-      {
-        "id": 4,
-        "groupBy": "Ano"
       }
     ],
-    "BUSINESS_HOURS": "Horário comercial"
+    "BUSINESS_HOURS": "Horário comercial",
+    "FILTER_ACTIONS": {
+      "CLEAR_FILTER": "Limpar filtros",
+      "EMPTY_LIST": "Nenhum resultado encontrado"
+    }
   },
   "AGENT_REPORTS": {
     "HEADER": "Visão Geral de Agentes",
@@ -403,8 +415,8 @@
   "CSAT_REPORTS": {
     "HEADER": "Relatórios CSAT",
     "NO_RECORDS": "Sem dados CSAT disponíveis para reposta.",
-    "DOWNLOAD": "Download CSAT Reports",
-    "DOWNLOAD_FAILED": "Failed to download CSAT Reports",
+    "DOWNLOAD": "Descarregar Relatórios de CSAT",
+    "DOWNLOAD_FAILED": "Falha ao descarregar os relatórios CSAT",
     "FILTERS": {
       "AGENTS": {
         "PLACEHOLDER": "Escolher Agentes"
@@ -433,31 +445,53 @@
       }
     }
   },
+  "BOT_REPORTS": {
+    "HEADER": "Relatórios de bot",
+    "METRIC": {
+      "TOTAL_CONVERSATIONS": {
+        "LABEL": "Num. de conversas",
+        "TOOLTIP": "Número total de conversas encaminhadas pelo bot"
+      },
+      "TOTAL_RESPONSES": {
+        "LABEL": "Total de respostas",
+        "TOOLTIP": "Número total de respostas enviadas pelo bot"
+      },
+      "RESOLUTION_RATE": {
+        "LABEL": "Taxa de resolução",
+        "TOOLTIP": "Número total de conversas resolvidas pelo bot / número total de conversas encaminhadas pelo bot * 100"
+      },
+      "HANDOFF_RATE": {
+        "LABEL": "Taxa de transferência",
+        "TOOLTIP": "Número total de conversas transferidas para agentes / número total de conversas encaminhadas pelo bot * 100"
+      }
+    }
+  },
   "OVERVIEW_REPORTS": {
     "HEADER": "Visão geral",
-    "LIVE": "Live",
+    "LIVE": "Disponível",
     "ACCOUNT_CONVERSATIONS": {
-      "HEADER": "Open Conversations",
-      "LOADING_MESSAGE": "Loading conversation metrics...",
+      "HEADER": "Conversas Abertas",
+      "LOADING_MESSAGE": "A importar métricas de conversa...",
       "OPEN": "Abertas",
-      "UNATTENDED": "Unattended",
-      "UNASSIGNED": "Não atribuído"
+      "UNATTENDED": "Por responder",
+      "UNASSIGNED": "Não atribuído",
+      "PENDING": "Pendente"
     },
     "CONVERSATION_HEATMAP": {
-      "HEADER": "Conversation Traffic",
-      "NO_CONVERSATIONS": "No conversations",
-      "CONVERSATION": "%{count} conversation",
-      "CONVERSATIONS": "%{count} conversations"
+      "HEADER": "Tráfego de conversa",
+      "NO_CONVERSATIONS": "Não existem conversas",
+      "CONVERSATION": "%{count} conversa",
+      "CONVERSATIONS": "%{count} conversas"
     },
     "AGENT_CONVERSATIONS": {
-      "HEADER": "Conversations by agents",
-      "LOADING_MESSAGE": "Loading agent metrics...",
-      "NO_AGENTS": "There are no conversations by agents",
+      "HEADER": "Conversas por agentes",
+      "LOADING_MESSAGE": "A gerar métricas dos agentes...",
+      "NO_AGENTS": "Não existem conversas por agentes",
       "TABLE_HEADER": {
         "AGENT": "Representante",
-        "OPEN": "ABRIR",
-        "UNATTENDED": "Unattended",
-        "STATUS": "SItuação"
+        "OPEN": "Abertas",
+        "UNATTENDED": "Por responder",
+        "STATUS": "Estado"
       }
     },
     "AGENT_STATUS": {
@@ -468,12 +502,61 @@
     }
   },
   "DAYS_OF_WEEK": {
-    "SUNDAY": "Sunday",
-    "MONDAY": "Monday",
-    "TUESDAY": "Tuesday",
-    "WEDNESDAY": "Wednesday",
-    "THURSDAY": "Thursday",
-    "FRIDAY": "Friday",
-    "SATURDAY": "Saturday"
+    "SUNDAY": "Domingo",
+    "MONDAY": "Segunda-feira",
+    "TUESDAY": "Terça-feira",
+    "WEDNESDAY": "Quarta-feira",
+    "THURSDAY": "Quinta-feira",
+    "FRIDAY": "Sexta-feira",
+    "SATURDAY": "Sábado"
+  },
+  "SLA_REPORTS": {
+    "HEADER": "Relatórios SLA",
+    "NO_RECORDS": "Conversas com SLA aplicados não estão disponíveis.",
+    "LOADING": "A importar dados de SLA...",
+    "DOWNLOAD_SLA_REPORTS": "Download relatórios de SLA",
+    "DOWNLOAD_FAILED": "Falha ao efetuar download dos relatórios de SLA",
+    "DROPDOWN": {
+      "ADD_FIlTER": "Adicionar filtro",
+      "CLEAR_ALL": "Limpar tudo",
+      "CLEAR_FILTER": "Limpar filtros",
+      "EMPTY_LIST": "Nenhum resultado encontrado",
+      "NO_FILTER": "No filters available",
+      "SEARCH": "Search filter",
+      "INPUT_PLACEHOLDER": {
+        "SLA": "SLA name",
+        "AGENTS": "Nome do agente",
+        "INBOXES": "Nome da caixa de entrada",
+        "LABELS": "Nome da etiqueta",
+        "TEAMS": "Nome da equipa"
+      },
+      "SLA": "SLA Policy",
+      "INBOXES": "Caixa de Entrada",
+      "AGENTS": "Representante",
+      "LABELS": "Etiqueta",
+      "TEAMS": "Equipa"
+    },
+    "METRICS": {
+      "HIT_RATE": {
+        "LABEL": "Hit Rate",
+        "TOOLTIP": "Percentage of SLAs created were completed successfully"
+      },
+      "NO_OF_MISSES": {
+        "LABEL": "Number of Misses",
+        "TOOLTIP": "Total SLA misses in a certain period"
+      },
+      "NO_OF_CONVERSATIONS": {
+        "LABEL": "Number of Conversations",
+        "TOOLTIP": "Total number of conversations with SLA"
+      }
+    },
+    "TABLE": {
+      "HEADER": {
+        "POLICY": "Policy",
+        "CONVERSATION": "Conversa",
+        "AGENT": "Representante"
+      },
+      "VIEW_DETAILS": "View Details"
+    }
   }
 }

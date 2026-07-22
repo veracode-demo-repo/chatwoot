@@ -1,7 +1,10 @@
 <template>
-  <form class="contact--form" @submit.prevent="handleSubmit">
-    <div class="row">
-      <div class="columns">
+  <form
+    class="w-full px-8 pt-6 pb-8 contact--form"
+    @submit.prevent="handleSubmit"
+  >
+    <div>
+      <div class="w-full">
         <woot-avatar-uploader
           :label="$t('CONTACT_FORM.FORM.AVATAR.LABEL')"
           :src="avatarUrl"
@@ -13,8 +16,8 @@
         />
       </div>
     </div>
-    <div class="row">
-      <div class="columns">
+    <div>
+      <div class="w-full">
         <label :class="{ error: $v.name.$error }">
           {{ $t('CONTACT_FORM.FORM.NAME.LABEL') }}
           <input
@@ -39,7 +42,7 @@
         </label>
       </div>
     </div>
-    <div class="medium-12 columns">
+    <div class="w-full">
       <label :class="{ error: $v.description.$error }">
         {{ $t('CONTACT_FORM.FORM.BIO.LABEL') }}
         <textarea
@@ -50,8 +53,8 @@
         />
       </label>
     </div>
-    <div class="row">
-      <div class="medium-12 columns">
+    <div>
+      <div class="w-full">
         <label
           :class="{
             error: isPhoneNumberNotValid,
@@ -73,7 +76,7 @@
         </label>
         <div
           v-if="isPhoneNumberNotValid || !phoneNumber"
-          class="callout small warning"
+          class="relative mx-0 mt-0 mb-2.5 p-2 rounded-md text-sm border border-solid border-yellow-500 text-yellow-700 dark:border-yellow-700 bg-yellow-200/60 dark:bg-yellow-200/20 dark:text-yellow-400"
         >
           {{ $t('CONTACT_FORM.FORM.PHONE_NUMBER.HELP') }}
         </div>
@@ -81,12 +84,12 @@
     </div>
     <woot-input
       v-model.trim="companyName"
-      class="columns"
+      class="w-full"
       :label="$t('CONTACT_FORM.FORM.COMPANY_NAME.LABEL')"
       :placeholder="$t('CONTACT_FORM.FORM.COMPANY_NAME.PLACEHOLDER')"
     />
-    <div class="row">
-      <div class="medium-12 columns">
+    <div>
+      <div class="w-full">
         <label>
           {{ $t('CONTACT_FORM.FORM.COUNTRY.LABEL') }}
         </label>
@@ -108,30 +111,32 @@
     </div>
     <woot-input
       v-model="city"
-      class="columns"
+      class="w-full"
       :label="$t('CONTACT_FORM.FORM.CITY.LABEL')"
       :placeholder="$t('CONTACT_FORM.FORM.CITY.PLACEHOLDER')"
     />
 
-    <div class="medium-12 columns">
-      <label>
-        Social Profiles
-      </label>
+    <div class="w-full">
+      <label>{{ $t('CONTACTS_PAGE.LIST.TABLE_HEADER.SOCIAL_PROFILES') }}</label>
       <div
         v-for="socialProfile in socialProfileKeys"
         :key="socialProfile.key"
-        class="input-group"
+        class="flex items-stretch w-full mb-4"
       >
-        <span class="input-group-label">{{ socialProfile.prefixURL }}</span>
+        <span
+          class="flex items-center h-10 px-2 text-sm border-solid bg-slate-50 border-y ltr:border-l rtl:border-r ltr:rounded-l-md rtl:rounded-r-md dark:bg-slate-700 text-slate-800 dark:text-slate-100 border-slate-200 dark:border-slate-600"
+        >
+          {{ socialProfile.prefixURL }}
+        </span>
         <input
           v-model="socialProfileUserNames[socialProfile.key]"
-          class="input-group-field"
+          class="input-group-field ltr:!rounded-l-none rtl:rounded-r-none !mb-0"
           type="text"
         />
       </div>
     </div>
-    <div class="modal-footer">
-      <div class="medium-12 columns">
+    <div class="flex flex-row justify-end w-full gap-2 px-0 py-2">
+      <div class="w-full">
         <woot-submit-button
           :loading="inProgress"
           :button-text="$t('CONTACT_FORM.FORM.SUBMIT')"
@@ -145,7 +150,7 @@
 </template>
 
 <script>
-import alertMixin from 'shared/mixins/alertMixin';
+import { useAlert } from 'dashboard/composables';
 import {
   DuplicateContactException,
   ExceptionWithMessage,
@@ -156,7 +161,6 @@ import { isPhoneNumberValid } from 'shared/helpers/Validators';
 import parsePhoneNumber from 'libphonenumber-js';
 
 export default {
-  mixins: [alertMixin],
   props: {
     contact: {
       type: Object,
@@ -370,20 +374,18 @@ export default {
       try {
         await this.onSubmit(this.getContactObject());
         this.onSuccess();
-        this.showAlert(this.$t('CONTACT_FORM.SUCCESS_MESSAGE'));
+        useAlert(this.$t('CONTACT_FORM.SUCCESS_MESSAGE'));
       } catch (error) {
         if (error instanceof DuplicateContactException) {
           if (error.data.includes('email')) {
-            this.showAlert(
-              this.$t('CONTACT_FORM.FORM.EMAIL_ADDRESS.DUPLICATE')
-            );
+            useAlert(this.$t('CONTACT_FORM.FORM.EMAIL_ADDRESS.DUPLICATE'));
           } else if (error.data.includes('phone_number')) {
-            this.showAlert(this.$t('CONTACT_FORM.FORM.PHONE_NUMBER.DUPLICATE'));
+            useAlert(this.$t('CONTACT_FORM.FORM.PHONE_NUMBER.DUPLICATE'));
           }
         } else if (error instanceof ExceptionWithMessage) {
-          this.showAlert(error.data);
+          useAlert(error.data);
         } else {
-          this.showAlert(this.$t('CONTACT_FORM.ERROR_MESSAGE'));
+          useAlert(this.$t('CONTACT_FORM.ERROR_MESSAGE'));
         }
       }
     },
@@ -395,15 +397,13 @@ export default {
       try {
         if (this.contact && this.contact.id) {
           await this.$store.dispatch('contacts/deleteAvatar', this.contact.id);
-          this.showAlert(
-            this.$t('CONTACT_FORM.DELETE_AVATAR.API.SUCCESS_MESSAGE')
-          );
+          useAlert(this.$t('CONTACT_FORM.DELETE_AVATAR.API.SUCCESS_MESSAGE'));
         }
         this.avatarFile = null;
         this.avatarUrl = '';
         this.activeDialCode = '';
       } catch (error) {
-        this.showAlert(
+        useAlert(
           error.message
             ? error.message
             : this.$t('CONTACT_FORM.DELETE_AVATAR.API.ERROR_MESSAGE')
@@ -415,21 +415,9 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.contact--form {
-  padding: var(--space-normal) var(--space-large) var(--space-large);
-
-  .columns {
-    padding: 0 var(--space-smaller);
-  }
-}
-
-.input-group-label {
-  font-size: var(--font-size-small);
-}
-
 ::v-deep {
   .multiselect .multiselect__tags .multiselect__single {
-    padding-left: 0;
+    @apply pl-0;
   }
 }
 </style>

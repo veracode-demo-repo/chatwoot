@@ -2,26 +2,30 @@
   <div class="message-text__wrap" :class="attachmentTypeClasses">
     <img
       v-if="isImage && !isImageError"
-      :src="attachment.data_url"
+      class="bg-woot-200 dark:bg-woot-900"
+      :src="dataUrl"
+      :width="imageWidth"
+      :height="imageHeight"
       @click="onClick"
-      @error="onImgError()"
+      @error="onImgError"
     />
     <video
       v-if="isVideo"
-      :src="attachment.data_url"
+      :src="dataUrl"
       muted
       playsInline
+      @error="onImgError"
       @click="onClick"
     />
-    <audio v-else-if="isAudio" controls class="skip-context-menu">
-      <source :src="`${attachment.data_url}?t=${Date.now()}`" />
+    <audio v-else-if="isAudio" controls class="skip-context-menu mb-0.5">
+      <source :src="`${dataUrl}?t=${Date.now()}`" />
     </audio>
     <gallery-view
       v-if="show"
       :show.sync="show"
       :attachment="attachment"
       :all-attachments="filteredCurrentChatAttachments"
-      @error="onImgError()"
+      @error="onImgError"
       @close="onClose"
     />
   </div>
@@ -30,13 +34,13 @@
 <script>
 import { mapGetters } from 'vuex';
 import { hasPressedCommand } from 'shared/helpers/KeyboardHelpers';
-
-import GalleryView from '../components/GalleryView';
+import GalleryView from '../components/GalleryView.vue';
 
 const ALLOWED_FILE_TYPES = {
   IMAGE: 'image',
   VIDEO: 'video',
   AUDIO: 'audio',
+  IG_REEL: 'ig_reel',
 };
 
 export default {
@@ -63,7 +67,10 @@ export default {
       return this.attachment.file_type === ALLOWED_FILE_TYPES.IMAGE;
     },
     isVideo() {
-      return this.attachment.file_type === ALLOWED_FILE_TYPES.VIDEO;
+      return (
+        this.attachment.file_type === ALLOWED_FILE_TYPES.VIDEO ||
+        this.attachment.file_type === ALLOWED_FILE_TYPES.IG_REEL
+      );
     },
     isAudio() {
       return this.attachment.file_type === ALLOWED_FILE_TYPES.AUDIO;
@@ -79,6 +86,15 @@ export default {
         ['image', 'video', 'audio'].includes(attachment.file_type)
       );
       return attachments;
+    },
+    dataUrl() {
+      return this.attachment.data_url;
+    },
+    imageWidth() {
+      return this.attachment.width ? `${this.attachment.width}px` : 'auto';
+    },
+    imageHeight() {
+      return this.attachment.height ? `${this.attachment.height}px` : 'auto';
     },
   },
   watch: {

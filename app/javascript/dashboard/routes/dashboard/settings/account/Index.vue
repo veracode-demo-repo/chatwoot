@@ -1,14 +1,18 @@
 <template>
-  <div class="columns profile--settings">
+  <div class="flex-grow flex-shrink min-w-0 p-6 overflow-auto">
     <form v-if="!uiFlags.isFetchingItem" @submit.prevent="updateAccount">
-      <div class="small-12 row profile--settings--row">
-        <div class="columns small-3">
-          <h4 class="block-title">
+      <div
+        class="flex flex-row p-4 border-b border-slate-25 dark:border-slate-800"
+      >
+        <div
+          class="flex-grow-0 flex-shrink-0 flex-[25%] min-w-0 py-4 pr-6 pl-0"
+        >
+          <h4 class="text-lg font-medium text-black-900 dark:text-slate-200">
             {{ $t('GENERAL_SETTINGS.FORM.GENERAL_SECTION.TITLE') }}
           </h4>
           <p>{{ $t('GENERAL_SETTINGS.FORM.GENERAL_SECTION.NOTE') }}</p>
         </div>
-        <div class="columns small-9 medium-5">
+        <div class="p-4 flex-grow-0 flex-shrink-0 flex-[50%]">
           <label :class="{ error: $v.name.$error }">
             {{ $t('GENERAL_SETTINGS.FORM.NAME.LABEL') }}
             <input
@@ -82,20 +86,24 @@
         </div>
       </div>
 
-      <div class="profile--settings--row row">
-        <div class="columns small-3">
-          <h4 class="block-title">
+      <div
+        class="flex flex-row p-4 border-slate-25 dark:border-slate-700 text-black-900 dark:text-slate-300"
+      >
+        <div
+          class="flex-grow-0 flex-shrink-0 flex-[25%] min-w-0 py-4 pr-6 pl-0"
+        >
+          <h4 class="text-lg font-medium text-black-900 dark:text-slate-200">
             {{ $t('GENERAL_SETTINGS.FORM.ACCOUNT_ID.TITLE') }}
           </h4>
           <p>
             {{ $t('GENERAL_SETTINGS.FORM.ACCOUNT_ID.NOTE') }}
           </p>
         </div>
-        <div class="columns small-9 medium-5">
+        <div class="p-4 flex-grow-0 flex-shrink-0 flex-[50%]">
           <woot-code :script="getAccountId" />
         </div>
       </div>
-      <div class="current-version">
+      <div class="p-4 text-sm text-center">
         <div>{{ `v${globalConfig.appVersion}` }}</div>
         <div v-if="hasAnUpdateAvailable && globalConfig.displayManifest">
           {{
@@ -123,16 +131,23 @@
 <script>
 import { required, minValue, maxValue } from 'vuelidate/lib/validators';
 import { mapGetters } from 'vuex';
-import alertMixin from 'shared/mixins/alertMixin';
+import { useAlert } from 'dashboard/composables';
+import { useUISettings } from 'dashboard/composables/useUISettings';
 import configMixin from 'shared/mixins/configMixin';
 import accountMixin from '../../../../mixins/account';
 import { FEATURE_FLAGS } from '../../../../featureFlags';
-const semver = require('semver');
-import uiSettingsMixin from 'dashboard/mixins/uiSettings';
+import semver from 'semver';
 import { getLanguageDirection } from 'dashboard/components/widgets/conversation/advancedFilterItems/languages';
 
 export default {
-  mixins: [accountMixin, alertMixin, configMixin, uiSettingsMixin],
+  mixins: [accountMixin, configMixin],
+  setup() {
+    const { updateUISettings } = useUISettings();
+
+    return {
+      updateUISettings,
+    };
+  },
   data() {
     return {
       id: '',
@@ -192,7 +207,7 @@ export default {
     },
 
     featureInboundEmailEnabled() {
-      return !!this.features.inbound_emails;
+      return !!this.features?.inbound_emails;
     },
 
     featureCustomReplyDomainEnabled() {
@@ -212,14 +227,11 @@ export default {
     },
   },
   mounted() {
-    if (!this.id) {
-      this.initializeAccount();
-    }
+    this.initializeAccount();
   },
   methods: {
     async initializeAccount() {
       try {
-        await this.$store.dispatch('accounts/get');
         const {
           name,
           locale,
@@ -248,7 +260,7 @@ export default {
     async updateAccount() {
       this.$v.$touch();
       if (this.$v.$invalid) {
-        this.showAlert(this.$t('GENERAL_SETTINGS.FORM.ERROR'));
+        useAlert(this.$t('GENERAL_SETTINGS.FORM.ERROR'));
         return;
       }
       try {
@@ -262,9 +274,9 @@ export default {
         this.$root.$i18n.locale = this.locale;
         this.getAccount(this.id).locale = this.locale;
         this.updateDirectionView(this.locale);
-        this.showAlert(this.$t('GENERAL_SETTINGS.UPDATE.SUCCESS'));
+        useAlert(this.$t('GENERAL_SETTINGS.UPDATE.SUCCESS'));
       } catch (error) {
-        this.showAlert(this.$t('GENERAL_SETTINGS.UPDATE.ERROR'));
+        useAlert(this.$t('GENERAL_SETTINGS.UPDATE.ERROR'));
       }
     },
 
@@ -277,30 +289,3 @@ export default {
   },
 };
 </script>
-
-<style lang="scss">
-@import '~dashboard/assets/scss/variables.scss';
-@import '~dashboard/assets/scss/mixins.scss';
-
-.profile--settings {
-  padding: 24px;
-  overflow: auto;
-}
-
-.profile--settings--row {
-  @include border-normal-bottom;
-  padding: $space-normal;
-  .small-3 {
-    padding: $space-normal $space-medium $space-normal 0;
-  }
-  .small-9 {
-    padding: $space-normal;
-  }
-}
-
-.current-version {
-  font-size: var(--font-size-small);
-  text-align: center;
-  padding: var(--space-normal);
-}
-</style>

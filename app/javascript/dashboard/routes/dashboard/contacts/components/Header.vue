@@ -1,115 +1,139 @@
 <template>
-  <header class="header">
-    <div class="table-actions-wrap">
-      <div class="left-aligned-wrap">
-        <woot-sidemenu-icon />
-        <h1 class="page-title header-title">
-          {{ headerTitle }}
-        </h1>
-      </div>
-      <div class="right-aligned-wrap">
-        <div class="search-wrap">
-          <div class="search-icon-container">
-            <fluent-icon icon="search" class="search-icon" />
+  <header
+    class="bg-white border-b dark:bg-slate-900 border-slate-50 dark:border-slate-800"
+  >
+    <div class="flex justify-between w-full px-4 py-2">
+      <div class="flex flex-col items-center w-full gap-2 md:flex-row">
+        <div class="flex justify-between w-full gap-2">
+          <div
+            class="flex items-center justify-center max-w-full min-w-[6.25rem]"
+          >
+            <woot-sidemenu-icon />
+            <h1
+              class="m-0 mx-2 my-0 overflow-hidden text-xl text-slate-900 dark:text-slate-100 whitespace-nowrap text-ellipsis"
+            >
+              {{ headerTitle }}
+            </h1>
           </div>
-          <input
-            type="text"
-            :placeholder="$t('CONTACTS_PAGE.SEARCH_INPUT_PLACEHOLDER')"
-            class="contact-search"
-            :value="searchQuery"
-            @keyup.enter="submitSearch"
-            @input="inputSearch"
-          />
-          <woot-button
-            :is-loading="false"
-            class="clear"
-            :class-names="searchButtonClass"
-            @click="submitSearch"
+          <div
+            class="max-w-[400px] min-w-[100px] flex items-center relative mx-2"
           >
-            {{ $t('CONTACTS_PAGE.SEARCH_BUTTON') }}
-          </woot-button>
+            <div class="flex items-center absolute h-full left-2.5">
+              <fluent-icon
+                icon="search"
+                class="h-5 text-sm leading-9 text-slate-700 dark:text-slate-200"
+              />
+            </div>
+            <input
+              type="text"
+              :placeholder="$t('CONTACTS_PAGE.SEARCH_INPUT_PLACEHOLDER')"
+              class="!pl-9 !pr-[3.75rem] !text-sm !w-full !h-[2.375rem] !m-0 border-slate-100 dark:border-slate-600"
+              :value="searchQuery"
+              @keyup.enter="submitSearch"
+              @input="inputSearch"
+            />
+            <woot-button
+              :is-loading="false"
+              class="absolute h-8 px-2 py-0 ml-2 transition-transform duration-100 ease-linear clear right-1"
+              :class-names="searchButtonClass"
+              @click="submitSearch"
+            >
+              {{ $t('CONTACTS_PAGE.SEARCH_BUTTON') }}
+            </woot-button>
+          </div>
         </div>
-        <div v-if="hasActiveSegments">
+        <div class="flex gap-1">
+          <div v-if="hasActiveSegments" class="flex gap-2">
+            <woot-button
+              class="clear [&>span]:hidden xs:[&>span]:block"
+              color-scheme="secondary"
+              icon="edit"
+              @click="onToggleEditSegmentsModal"
+            >
+              {{ $t('CONTACTS_PAGE.FILTER_CONTACTS_EDIT') }}
+            </woot-button>
+            <woot-button
+              class="clear [&>span]:hidden xs:[&>span]:block"
+              color-scheme="alert"
+              icon="delete"
+              @click="onToggleDeleteSegmentsModal"
+            >
+              {{ $t('CONTACTS_PAGE.FILTER_CONTACTS_DELETE') }}
+            </woot-button>
+          </div>
+          <div v-if="!hasActiveSegments" class="relative">
+            <div
+              v-if="hasAppliedFilters"
+              class="absolute w-2 h-2 rounded-full top-1 right-3 bg-slate-500 dark:bg-slate-500"
+            />
+            <woot-button
+              class="clear [&>span]:hidden xs:[&>span]:block"
+              color-scheme="secondary"
+              data-testid="create-new-contact"
+              icon="filter"
+              @click="toggleFilter"
+            >
+              {{ $t('CONTACTS_PAGE.FILTER_CONTACTS') }}
+            </woot-button>
+          </div>
+
           <woot-button
-            class="margin-right-1 clear"
-            color-scheme="secondary"
-            icon="edit"
-            @click="onToggleEditSegmentsModal"
-          >
-            {{ $t('CONTACTS_PAGE.FILTER_CONTACTS_EDIT') }}
-          </woot-button>
-          <woot-button
-            class="margin-right-1 clear"
+            v-if="hasAppliedFilters && !hasActiveSegments"
+            class="clear [&>span]:hidden xs:[&>span]:block"
             color-scheme="alert"
-            icon="delete"
-            @click="onToggleDeleteSegmentsModal"
+            variant="clear"
+            icon="save"
+            @click="onToggleSegmentsModal"
           >
-            {{ $t('CONTACTS_PAGE.FILTER_CONTACTS_DELETE') }}
+            {{ $t('CONTACTS_PAGE.FILTER_CONTACTS_SAVE') }}
           </woot-button>
-        </div>
-        <div v-if="!hasActiveSegments" class="filters__button-wrap">
-          <div v-if="hasAppliedFilters" class="filters__applied-indicator" />
           <woot-button
-            class="margin-right-1 clear"
-            color-scheme="secondary"
+            class="clear [&>span]:hidden xs:[&>span]:block"
+            color-scheme="success"
+            icon="person-add"
             data-testid="create-new-contact"
-            icon="filter"
-            @click="toggleFilter"
+            @click="toggleCreate"
           >
-            {{ $t('CONTACTS_PAGE.FILTER_CONTACTS') }}
+            {{ $t('CREATE_CONTACT.BUTTON_LABEL') }}
+          </woot-button>
+
+          <woot-button
+            v-if="isAdmin"
+            color-scheme="info"
+            icon="upload"
+            class="clear [&>span]:hidden xs:[&>span]:block"
+            @click="toggleImport"
+          >
+            {{ $t('IMPORT_CONTACTS.BUTTON_LABEL') }}
+          </woot-button>
+
+          <woot-button
+            v-if="isAdmin"
+            color-scheme="info"
+            icon="download"
+            class="clear [&>span]:hidden xs:[&>span]:block"
+            @click="submitExport"
+          >
+            {{ $t('EXPORT_CONTACTS.BUTTON_LABEL') }}
           </woot-button>
         </div>
-
-        <woot-button
-          v-if="hasAppliedFilters && !hasActiveSegments"
-          class="margin-right-1 clear"
-          color-scheme="alert"
-          variant="clear"
-          icon="save"
-          @click="onToggleSegmentsModal"
-        >
-          {{ $t('CONTACTS_PAGE.FILTER_CONTACTS_SAVE') }}
-        </woot-button>
-        <woot-button
-          class="margin-right-1 clear"
-          color-scheme="success"
-          icon="person-add"
-          data-testid="create-new-contact"
-          @click="toggleCreate"
-        >
-          {{ $t('CREATE_CONTACT.BUTTON_LABEL') }}
-        </woot-button>
-
-        <woot-button
-          v-if="isAdmin"
-          color-scheme="info"
-          icon="upload"
-          class="clear"
-          @click="toggleImport"
-        >
-          {{ $t('IMPORT_CONTACTS.BUTTON_LABEL') }}
-        </woot-button>
-
-        <woot-button
-          v-if="isAdmin"
-          color-scheme="info"
-          icon="download"
-          class="clear"
-          @click="submitExport"
-        >
-          {{ $t('EXPORT_CONTACTS.BUTTON_LABEL') }}
-        </woot-button>
       </div>
     </div>
+    <woot-confirm-modal
+      ref="confirmExportContactsDialog"
+      :title="$t('EXPORT_CONTACTS.CONFIRM.TITLE')"
+      :description="exportDescription"
+      :confirm-label="$t('EXPORT_CONTACTS.CONFIRM.YES')"
+      :cancel-label="$t('EXPORT_CONTACTS.CONFIRM.NO')"
+    />
   </header>
 </template>
 
 <script>
 import { mapGetters } from 'vuex';
-import adminMixin from 'dashboard/mixins/isAdmin';
+import { useAdmin } from 'dashboard/composables/useAdmin';
 
 export default {
-  mixins: [adminMixin],
   props: {
     headerTitle: {
       type: String,
@@ -124,6 +148,12 @@ export default {
       default: 0,
     },
   },
+  setup() {
+    const { isAdmin } = useAdmin();
+    return {
+      isAdmin,
+    };
+  },
   data() {
     return {
       showCreateModal: false,
@@ -132,7 +162,9 @@ export default {
   },
   computed: {
     searchButtonClass() {
-      return this.searchQuery !== '' ? 'show' : '';
+      return this.searchQuery !== ''
+        ? 'opacity-100 translate-x-0 visible'
+        : '-translate-x-px opacity-0 invisible';
     },
     ...mapGetters({
       getAppliedContactFilters: 'contacts/getAppliedContactFilters',
@@ -142,6 +174,11 @@ export default {
     },
     hasActiveSegments() {
       return this.segmentsId !== 0;
+    },
+    exportDescription() {
+      return this.hasAppliedFilters
+        ? this.$t('EXPORT_CONTACTS.CONFIRM.FILTERED_MESSAGE')
+        : this.$t('EXPORT_CONTACTS.CONFIRM.MESSAGE');
     },
   },
   methods: {
@@ -163,8 +200,13 @@ export default {
     toggleImport() {
       this.$emit('on-toggle-import');
     },
-    submitExport() {
-      this.$emit('on-export-submit');
+    async submitExport() {
+      const ok =
+        await this.$refs.confirmExportContactsDialog.showConfirmation();
+
+      if (ok) {
+        this.$emit('on-export-submit');
+      }
     },
     submitSearch() {
       this.$emit('on-search-submit');
@@ -175,100 +217,3 @@ export default {
   },
 };
 </script>
-
-<style lang="scss" scoped>
-.page-title {
-  margin: 0;
-}
-.table-actions-wrap {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  padding: var(--space-small) var(--space-normal) var(--space-small)
-    var(--space-normal);
-}
-
-.left-aligned-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  max-width: 100%;
-  min-width: var(--space-mega);
-
-  .header-title {
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
-    margin: 0 var(--space-small);
-  }
-}
-
-.right-aligned-wrap {
-  display: flex;
-}
-
-.search-wrap {
-  max-width: 400px;
-  min-width: 150px;
-  display: flex;
-  align-items: center;
-  position: relative;
-  margin-right: var(--space-small);
-  margin-left: var(--space-small);
-
-  .search-icon-container {
-    display: flex;
-    align-items: center;
-    position: absolute;
-    height: 100%;
-    left: var(--space-one);
-
-    .search-icon {
-      height: var(--font-size-medium);
-      line-height: 3.6rem;
-      font-size: var(--font-size-small);
-      color: var(--b-700);
-    }
-  }
-  .contact-search {
-    margin: 0;
-    height: 3.8rem;
-    width: 100%;
-    font-size: var(--font-size-small);
-    padding-left: calc(var(--space-large) + var(--space-smaller));
-    padding-right: 6rem;
-    border-color: var(--s-100);
-  }
-
-  .button {
-    margin-left: var(--space-small);
-    height: 3.2rem;
-    right: var(--space-smaller);
-    position: absolute;
-    padding: 0 var(--space-small);
-    transition: transform 100ms linear;
-    opacity: 0;
-    transform: translateX(-1px);
-    visibility: hidden;
-  }
-
-  .button.show {
-    opacity: 1;
-    transform: translateX(0);
-    visibility: visible;
-  }
-}
-.filters__button-wrap {
-  position: relative;
-
-  .filters__applied-indicator {
-    position: absolute;
-    height: var(--space-small);
-    width: var(--space-small);
-    top: var(--space-smaller);
-    right: var(--space-slab);
-    background-color: var(--s-500);
-    border-radius: var(--border-radius-rounded);
-  }
-}
-</style>

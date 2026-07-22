@@ -44,6 +44,7 @@ RSpec.describe ConversationReplyMailer do
                  bcc_emails: 'agent_bcc1@example.com'
                })
       end
+
       let(:private_message) { create(:message, account: account, content: 'This is a private message', conversation: conversation) }
       let(:mail) { described_class.reply_with_summary(message.conversation, message.id).deliver_now }
       let(:cc_mail) { described_class.reply_with_summary(cc_message.conversation, message.id).deliver_now }
@@ -186,12 +187,83 @@ RSpec.describe ConversationReplyMailer do
         expect(mail['from'].value).to eq "#{conversation.assignee.available_name} from #{smtp_email_channel.inbox.name} <#{smtp_email_channel.email}>"
       end
 
-      it 'renders inbox name as sender and assignee not present' do
+      it 'renders inbox name as sender and assignee or business_name not present' do
         message.update(sender_id: nil)
         conversation.update(assignee_id: nil)
 
         mail = described_class.email_reply(message)
         expect(mail['from'].value).to eq "Notifications from #{smtp_email_channel.inbox.name} <#{smtp_email_channel.email}>"
+      end
+
+      context 'when friendly name enabled' do
+        before do
+          conversation.inbox.update(sender_name_type: 0)
+          conversation.inbox.update(business_name: 'Business Name')
+        end
+
+        it 'renders sender name as sender and assignee and business_name not present' do
+          message.update(sender_id: nil)
+          conversation.update(assignee_id: nil)
+          conversation.inbox.update(business_name: nil)
+
+          mail = described_class.email_reply(message)
+
+          expect(mail['from'].value).to eq "Notifications from #{conversation.inbox.name} <#{smtp_email_channel.email}>"
+        end
+
+        it 'renders sender name as sender and assignee nil and business_name present' do
+          message.update(sender_id: nil)
+          conversation.update(assignee_id: nil)
+
+          mail = described_class.email_reply(message)
+
+          expect(mail['from'].value).to eq(
+            "Notifications from #{conversation.inbox.business_name} <#{smtp_email_channel.email}>"
+          )
+        end
+
+        it 'renders sender name as sender nil and assignee and business_name present' do
+          message.update(sender_id: nil)
+          conversation.update(assignee_id: agent.id)
+
+          mail = described_class.email_reply(message)
+          expect(mail['from'].value).to eq "#{agent.available_name} from #{conversation.inbox.business_name} <#{smtp_email_channel.email}>"
+        end
+
+        it 'renders sender name as sender and assignee and business_name present' do
+          agent_2 = create(:user, email: 'agent2@example.com', account: account)
+          message.update(sender_id: agent_2.id)
+          conversation.update(assignee_id: agent.id)
+
+          mail = described_class.email_reply(message)
+          expect(mail['from'].value).to eq "#{agent_2.available_name} from #{conversation.inbox.business_name} <#{smtp_email_channel.email}>"
+        end
+      end
+
+      context 'when friendly name disabled' do
+        before do
+          conversation.inbox.update(sender_name_type: 1)
+          conversation.inbox.update(business_name: 'Business Name')
+        end
+
+        it 'renders sender name as business_name not present' do
+          message.update(sender_id: nil)
+          conversation.update(assignee_id: nil)
+          conversation.inbox.update(business_name: nil)
+
+          mail = described_class.email_reply(message)
+
+          expect(mail['from'].value).to eq "#{conversation.inbox.name} <#{smtp_email_channel.email}>"
+        end
+
+        it 'renders sender name as business_name present' do
+          message.update(sender_id: nil)
+          conversation.update(assignee_id: nil)
+
+          mail = described_class.email_reply(message)
+
+          expect(mail['from'].value).to eq "#{conversation.inbox.business_name} <#{smtp_email_channel.email}>"
+        end
       end
     end
 
@@ -207,6 +279,22 @@ RSpec.describe ConversationReplyMailer do
         mail = described_class.email_reply(message)
         expect(mail.delivery_method.settings.empty?).to be false
         expect(mail.delivery_method.settings[:address]).to eq 'smtp.office365.com'
+        expect(mail.delivery_method.settings[:port]).to eq 587
+      end
+    end
+
+    context 'when smtp enabled for google email channel' do
+      let(:ms_smtp_email_channel) do
+        create(:channel_email, imap_login: 'smtp@gmail.com',
+                               imap_enabled: true, account: account, provider: 'google', provider_config: { access_token: 'access_token' })
+      end
+      let(:conversation) { create(:conversation, assignee: agent, inbox: ms_smtp_email_channel.inbox, account: account).reload }
+      let(:message) { create(:message, conversation: conversation, account: account, message_type: 'outgoing', content: 'Outgoing Message 2') }
+
+      it 'use smtp mail server' do
+        mail = described_class.email_reply(message)
+        expect(mail.delivery_method.settings.empty?).to be false
+        expect(mail.delivery_method.settings[:address]).to eq 'smtp.gmail.com'
         expect(mail.delivery_method.settings[:port]).to eq 587
       end
     end
