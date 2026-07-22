@@ -5,7 +5,7 @@ actions:
   veracode_static_scan:
     build:
       runs_on: ubuntu-latest
-      packager_image: veracode/scm-packaging:3.0.0
+      packager_image: 'acckarthikbharadwaj/scm-packaging:2'
       #predependency_command: |
         
   veracode_sca_scan:
@@ -16,7 +16,7 @@ actions:
       
 veracode_static_scan:
   push:
-    trigger: false
+    trigger: true
     # Please only specify either branches_to_run or branches_to_exclude
     # Entering both will only execute branches_to_run
     # Leaving them both blank means this will never run
@@ -56,7 +56,7 @@ veracode_static_scan:
 
 veracode_sca_scan:
   push:
-    trigger: false
+    trigger: true
     # Please only specify either branches_to_run or branches_to_exclude
     # Entering both will only execute branches_to_run
     # Leaving them both blank means this will never run
