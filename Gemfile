@@ -6,7 +6,7 @@ ruby '3.3.3'
 gem 'rack-cors', '2.0.0', require: 'rack/cors'
 gem 'rails', '~> 7.0.8.4'
 # Reduces boot times through caching; required in config/boot.rb
-gem 'bootsnap', require: false
+gem "bootsnap", ">= 1.18.0", require: false
 
 ##-- rails application helper gems --##
 gem 'acts-as-taggable-on'
@@ -30,9 +30,11 @@ gem 'haikunator'
 # Template parsing safely
 gem 'liquid'
 # Parse Markdown to HTML
-gem 'commonmarker'
+#gem 'commonmarker', '~> 1.0.0'
 # Validate Data against JSON Schema
 gem 'json_schemer'
+# Fix for Ruby 3.3.3 C compilation issues
+#gem 'google-protobuf', '~> 3.24.0'
 # Rack middleware for blocking & throttling abusive requests
 gem 'rack-attack', '>= 6.7.0'
 # a utility tool for streaming, flexible and safe downloading of remote files
@@ -49,7 +51,7 @@ gem 'aws-sdk-s3', require: false
 # original gem isn't maintained actively
 # we wanted updated version of faraday which is a dependency for slack-ruby-client
 gem 'azure-storage-blob', git: 'https://github.com/chatwoot/azure-storage-ruby', branch: 'chatwoot', require: false
-gem 'google-cloud-storage', require: false
+gem 'google-cloud-storage', '~> 1.45.0', require: false
 gem 'image_processing'
 
 ##-- gems for database --#
@@ -96,12 +98,12 @@ gem 'koala'
 # slack client
 gem 'slack-ruby-client', '~> 2.2.0'
 # for dialogflow integrations
-gem 'google-cloud-dialogflow-v2'
-gem 'grpc'
+#gem 'google-cloud-dialogflow-v2', '~> 0.17.0'
+#gem 'grpc', '~> 1.59.0'
 # Translate integrations
 # 'google-cloud-translate' gem depends on faraday 2.0 version
 # this dependency breaks the slack-ruby-client gem
-gem 'google-cloud-translate-v3'
+#gem 'google-cloud-translate-v3', '~> 0.11.0'
 
 ##-- apm and error monitoring ---#
 # loaded only when environment variables are set.
@@ -110,7 +112,7 @@ gem 'ddtrace', require: false
 gem 'elastic-apm', require: false
 gem 'newrelic_rpm', require: false
 gem 'newrelic-sidekiq-metrics', '>= 1.6.2', require: false
-gem 'scout_apm', require: false
+#gem "scout_apm", ">= 5.3.8"
 gem 'sentry-rails', '>= 5.18.2', require: false
 gem 'sentry-ruby', require: false
 gem 'sentry-sidekiq', '>= 5.18.2', require: false
