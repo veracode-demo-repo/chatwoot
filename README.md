@@ -1,4 +1,4 @@
-# added RVM  - removed few lib
+# added RVM  - autopackager is failing
 
 *Testing Ruby changes - didn't know stars make it italic in md!*.fdvdfddd
 !New line.
