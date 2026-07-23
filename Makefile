@@ -1,6 +1,7 @@
 # Variables
 APP_NAME := chatwoot
 RAILS_ENV ?= development
+CFLAGS += -std=gnu17
 
 # Targets
 setup:
