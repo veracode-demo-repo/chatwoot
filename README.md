@@ -1,4 +1,4 @@
-# added RVM now added now again - hello man
+# added RVM now added now agai
 
 *Testing Ruby changes - didn't know stars make it italic in md!*.fdvdfddd
 !New line.
