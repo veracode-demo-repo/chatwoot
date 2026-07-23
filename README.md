@@ -1,4 +1,4 @@
-# added RVM  - removed 
+# added RVM  - removed few lib
 
 *Testing Ruby changes - didn't know stars make it italic in md!*.fdvdfddd
 !New line.
