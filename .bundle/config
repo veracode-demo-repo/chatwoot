@@ -1,0 +1,2 @@
+---
+BUNDLE_BUILD__SCOUT_APM: "--with-cflags=-std=gnu17"
