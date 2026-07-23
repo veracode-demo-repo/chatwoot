@@ -1,3 +1,4 @@
+debug: true
 actions:
   ruby:
     version: 3.3.3
