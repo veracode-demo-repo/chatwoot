@@ -1,4 +1,4 @@
-# added RVM  - autopackager is failing with ruby bundle install failing y?? yyyy
+# added RVM  - autopackager is failing with ruby bundle install failing y?? yyyy - removed bundle version
 
 *Testing Ruby changes - didn't know stars make it italic in md!*.fdvdfddd
 !New line.
